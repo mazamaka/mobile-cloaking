@@ -6,7 +6,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-cloaking}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "${POSTGRES_PORT:-5440}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -19,7 +19,7 @@ services:
   adminer:
     image: adminer:latest
     ports:
-      - "${ADMINER_PORT:-8080}:8080"
+      - "${ADMINER_PORT:-8180}:8080"
     depends_on:
       db:
         condition: service_healthy
@@ -29,7 +29,7 @@ services:
     build: .
     env_file: stack.env
     ports:
-      - "${PORT:-8000}:8000"
+      - "${PORT:-8100}:8000"
     depends_on:
       db:
         condition: service_healthy
