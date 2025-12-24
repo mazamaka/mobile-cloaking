@@ -1,0 +1,32 @@
+# Web Framework
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+gunicorn>=23.0.0
+
+# Database
+sqlalchemy[asyncio]>=2.0.36
+sqlmodel>=0.0.22
+asyncpg>=0.30.0
+psycopg2-binary>=2.9.9
+greenlet>=3.1.0
+
+# Migrations
+alembic>=1.14.0
+
+# Admin Panel
+starlette-admin>=0.14.1
+
+# Settings & Validation
+pydantic>=2.10.0
+pydantic-settings>=2.6.0
+
+# Logging
+loguru>=0.7.2
+
+# Security
+itsdangerous>=2.2.0
+python-multipart>=0.0.17
+
+# Utils
+python-dateutil>=2.9.0
+httpx>=0.28.0

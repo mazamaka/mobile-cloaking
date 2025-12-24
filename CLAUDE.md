@@ -503,7 +503,7 @@ class DecisionEngine:
 
 ### Авторизация:
 
-Простая авторизация через login/password (как в google-admin):
+Простая авторизация через login/password (как в 1-google-admin):
 - `ADMIN_LOGIN` и `ADMIN_PASSWORD` в env
 - Session-based auth
 - CustomAuthProvider для Starlette Admin
@@ -789,7 +789,7 @@ curl -X POST http://localhost:8000/api/v1/client/event \
 
 1. **НЕ создавай миграции автоматически** - только по запросу пользователя
 2. **НЕ деплой на сервер** без явного подтверждения
-3. Используй паттерны из проекта google-admin (`/Users/admin/PycharmProjects/google-admin/`)
+3. Используй паттерны из проекта 1-google-admin (`/Users/admin/PycharmProjects/1-google-admin/`)
 4. Для актуальных примеров библиотек смотри в `/Users/admin/PycharmProjects/DOCS/`
 5. Используй MCP context7 для получения актуальной документации
 
@@ -797,5 +797,5 @@ curl -X POST http://localhost:8000/api/v1/client/event \
 
 ## Ссылки на референсы
 
-- Проект-пример: `/Users/admin/PycharmProjects/google-admin/`
+- Проект-пример: `/Users/admin/PycharmProjects/1-google-admin/`
 - Документация библиотек: `/Users/admin/PycharmProjects/DOCS/`
