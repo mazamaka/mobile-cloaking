@@ -1,7 +1,9 @@
 from sqlalchemy import create_engine
 from starlette.middleware import Middleware
 from starlette.middleware.sessions import SessionMiddleware
+from starlette_admin import DropDown
 from starlette_admin.contrib.sqlmodel import Admin
+from starlette_admin.views import Link
 
 from app.admin.auth.provider import CustomAuthProvider
 from app.table.app.view import app_view
@@ -35,6 +37,19 @@ def create_admin() -> Admin:
     admin.add_view(client_view)
     admin.add_view(event_view)
     admin.add_view(init_log_view)
+
+    # Add documentation links
+    admin.add_view(
+        DropDown(
+            "Documentation",
+            icon="fa fa-book",
+            views=[
+                Link(label="Swagger UI", icon="fa fa-file-code", url="/docs", target="_blank"),
+                Link(label="ReDoc", icon="fa fa-file-alt", url="/redoc", target="_blank"),
+                Link(label="OpenAPI JSON", icon="fa fa-code", url="/openapi.json", target="_blank"),
+            ],
+        )
+    )
 
     return admin
 
