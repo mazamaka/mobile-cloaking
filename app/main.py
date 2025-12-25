@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from app.admin.panel import setup_admin
 from app.api.v1.router import router as api_v1_router
@@ -30,6 +31,9 @@ def create_app() -> FastAPI:
         docs_url="/docs" if SETTINGS.debug else None,
         redoc_url="/redoc" if SETTINGS.debug else None,
     )
+
+    # Trust proxy headers (X-Forwarded-Proto, X-Forwarded-For)
+    app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["*"])
 
     app.add_middleware(
         CORSMiddleware,
