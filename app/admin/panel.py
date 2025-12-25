@@ -42,11 +42,11 @@ def create_admin() -> Admin:
     admin.add_view(
         DropDown(
             "Documentation",
-            icon="ti ti-book",
+            icon="fas fa-book",
             views=[
-                Link(label="Swagger UI", icon="ti ti-file-code", url="/docs", target="_blank"),
-                Link(label="ReDoc", icon="ti ti-file-text", url="/redoc", target="_blank"),
-                Link(label="OpenAPI JSON", icon="ti ti-code", url="/openapi.json", target="_blank"),
+                Link(label="Swagger UI", icon="fas fa-file-code", url="/docs", target="_blank"),
+                Link(label="ReDoc", icon="fas fa-file-alt", url="/redoc", target="_blank"),
+                Link(label="OpenAPI JSON", icon="fas fa-code", url="/openapi.json", target="_blank"),
             ],
         )
     )

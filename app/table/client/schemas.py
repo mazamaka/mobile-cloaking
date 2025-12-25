@@ -6,70 +6,204 @@ from app.table.app.enums import UpdateMode
 
 # Request schemas
 class AppInfo(BaseModel):
-    bundle_id: str
-    version: str
+    """Информация о приложении."""
+
+    bundle_id: str = Field(
+        ...,
+        description="Bundle ID приложения (например: com.company.app)",
+        examples=["com.example.game"],
+    )
+    version: str = Field(
+        ...,
+        description="Версия приложения",
+        examples=["1.0.0", "2.1.3"],
+    )
 
 
 class DeviceInfo(BaseModel):
-    language: str
-    timezone: str
-    region: str
+    """Информация об устройстве."""
+
+    language: str = Field(
+        ...,
+        description="Язык устройства в формате ISO (например: en-US, ru-RU)",
+        examples=["en-US", "ru-RU", "en-EE"],
+    )
+    timezone: str = Field(
+        ...,
+        description="Часовой пояс устройства",
+        examples=["Europe/Moscow", "Europe/Budapest", "America/New_York"],
+    )
+    region: str = Field(
+        ...,
+        description="Регион устройства (ISO 3166-1 alpha-2)",
+        examples=["RU", "EE", "HU", "US"],
+    )
 
 
 class PrivacyInfo(BaseModel):
-    att: ATTStatus
+    """Настройки приватности."""
+
+    att: ATTStatus = Field(
+        ...,
+        description="""Статус App Tracking Transparency (iOS 14+):
+- `authorized` — пользователь разрешил трекинг
+- `denied` — пользователь запретил трекинг
+- `notDetermined` — пользователь ещё не принял решение
+- `restricted` — трекинг ограничен (родительский контроль)
+- `legacy` — iOS версия ниже 14
+- `unavailable` — трекинг отключён на устройстве""",
+    )
 
 
 class IdsInfo(BaseModel):
-    internal_id: str
-    idfa: str | None = None
+    """Идентификаторы устройства."""
+
+    internal_id: str = Field(
+        ...,
+        description="Уникальный ID устройства (UUID v4, хранится в Keychain)",
+        examples=["550e8400-e29b-41d4-a716-446655440000"],
+    )
+    idfa: str | None = Field(
+        default=None,
+        description="IDFA (Identifier for Advertisers). Доступен только при att=authorized",
+        examples=["AEBE52E7-03EE-455A-B3C4-E57283966239"],
+    )
 
 
 class AttributionInfo(BaseModel):
-    appsflyer_id: str | None = None
+    """Данные атрибуции."""
+
+    appsflyer_id: str | None = Field(
+        default=None,
+        description="AppsFlyer ID для атрибуции установок",
+        examples=["1765992827433-2791097"],
+    )
 
 
 class PushInfo(BaseModel):
-    token: str | None = None
+    """Push-уведомления."""
+
+    token: str | None = Field(
+        default=None,
+        description="Push-токен устройства (APNs token)",
+        examples=["abc123def456..."],
+    )
 
 
 class InitRequest(BaseModel):
-    """POST /api/v1/client/init request body."""
+    """
+    Тело запроса POST /api/v1/client/init.
 
-    schema_: int = Field(alias="schema")
-    app: AppInfo
-    device: DeviceInfo
-    privacy: PrivacyInfo
-    ids: IdsInfo
-    attribution: AttributionInfo | None = None
-    push: PushInfo | None = None
+    Отправляется при каждом запуске приложения для определения режима работы.
+    """
+
+    schema_: int = Field(
+        alias="schema",
+        description="Версия схемы API (сейчас всегда 1)",
+        examples=[1],
+    )
+    app: AppInfo = Field(
+        ...,
+        description="Информация о приложении",
+    )
+    device: DeviceInfo = Field(
+        ...,
+        description="Информация об устройстве",
+    )
+    privacy: PrivacyInfo = Field(
+        ...,
+        description="Настройки приватности (ATT статус)",
+    )
+    ids: IdsInfo = Field(
+        ...,
+        description="Идентификаторы устройства",
+    )
+    attribution: AttributionInfo | None = Field(
+        default=None,
+        description="Данные атрибуции (опционально)",
+    )
+    push: PushInfo | None = Field(
+        default=None,
+        description="Push-токен (опционально)",
+    )
 
     model_config = {"extra": "ignore", "populate_by_name": True}
 
 
 # Response schemas
 class PromptsConfig(BaseModel):
-    rate_delay_sec: int
-    push_delay_sec: int
+    """Настройки всплывающих окон."""
+
+    rate_delay_sec: int = Field(
+        ...,
+        description="Задержка перед показом 'Оцените приложение' (секунды)",
+        examples=[180],
+    )
+    push_delay_sec: int = Field(
+        ...,
+        description="Задержка перед показом запроса push-уведомлений (секунды)",
+        examples=[60],
+    )
 
 
 class UpdateConfig(BaseModel):
-    min_version: str | None = None
-    latest_version: str | None = None
-    mode: UpdateMode | None = None
-    appstore_url: str | None = None
+    """Настройки обновления приложения."""
+
+    min_version: str | None = Field(
+        default=None,
+        description="Минимальная поддерживаемая версия",
+        examples=["1.0.0"],
+    )
+    latest_version: str | None = Field(
+        default=None,
+        description="Последняя доступная версия",
+        examples=["1.2.0"],
+    )
+    mode: UpdateMode | None = Field(
+        default=None,
+        description="Режим обновления: soft (рекомендуем) или force (обязательно)",
+    )
+    appstore_url: str | None = Field(
+        default=None,
+        description="URL для открытия App Store",
+        examples=["itms-apps://itunes.apple.com/app/id123456789"],
+    )
 
 
 class InitResponseNative(BaseModel):
-    """200 OK response - native mode."""
+    """
+    Ответ 200 OK — Native режим.
 
-    prompts: PromptsConfig
-    update: UpdateConfig | None = None
+    Приложение показывает нативный контент (игру/приложение).
+    """
+
+    prompts: PromptsConfig = Field(
+        ...,
+        description="Настройки задержек для всплывающих окон",
+    )
+    update: UpdateConfig | None = Field(
+        default=None,
+        description="Информация об обновлении (если есть)",
+    )
 
 
 class InitResponseCasino(BaseModel):
-    """400 Bad Request response - casino mode."""
+    """
+    Ответ 400 Bad Request — Casino режим.
 
-    result: str
-    prompts: PromptsConfig
-    update: UpdateConfig | None = None
+    Приложение открывает WebView с URL казино.
+    """
+
+    result: str = Field(
+        ...,
+        description="URL казино для открытия в WebView",
+        examples=["https://casino-partner.com/?click_id=abc123&sub1=value"],
+    )
+    prompts: PromptsConfig = Field(
+        ...,
+        description="Настройки задержек для всплывающих окон",
+    )
+    update: UpdateConfig | None = Field(
+        default=None,
+        description="Информация об обновлении (если есть)",
+    )
