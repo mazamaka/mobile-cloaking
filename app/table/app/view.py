@@ -17,7 +17,6 @@ class AppView(ModelView):
         "bundle_id",
         "name",
         EnumField("mode", enum=AppMode, label="Mode"),
-        StringField("casino_url", label="Casino URL"),
         IntegerField("rate_delay_sec", label="Rate Delay (sec)"),
         IntegerField("push_delay_sec", label="Push Delay (sec)"),
         StringField("min_version", label="Min Version"),
@@ -29,7 +28,7 @@ class AppView(ModelView):
         "updated_at",
     ]
 
-    exclude_fields_from_list = ["casino_url", "appstore_url", "created_at", "updated_at"]
+    exclude_fields_from_list = ["appstore_url", "created_at", "updated_at"]
     exclude_fields_from_create = ["id", "created_at", "updated_at"]
     exclude_fields_from_edit = ["id", "created_at", "updated_at"]
 

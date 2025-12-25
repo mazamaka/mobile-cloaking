@@ -15,7 +15,6 @@ class App(SQLModel, table=True):
 
     # Mode - stored as VARCHAR in DB
     mode: AppMode = Field(default=AppMode.NATIVE, sa_column=Column(String(10), nullable=False, default="native"))
-    casino_url: str | None = Field(default=None)
 
     # Prompts settings
     rate_delay_sec: int = Field(default=180)

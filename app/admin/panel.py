@@ -7,7 +7,9 @@ from app.admin.auth.provider import CustomAuthProvider
 from app.table.app.view import app_view
 from app.table.client.view import client_view
 from app.table.event.view import event_view
+from app.table.geo.view import geo_view
 from app.table.init_log.view import init_log_view
+from app.table.offer.view import offer_view
 from config import SETTINGS
 
 
@@ -28,6 +30,8 @@ def create_admin() -> Admin:
 
     # Add views
     admin.add_view(app_view)
+    admin.add_view(geo_view)
+    admin.add_view(offer_view)
     admin.add_view(client_view)
     admin.add_view(event_view)
     admin.add_view(init_log_view)
