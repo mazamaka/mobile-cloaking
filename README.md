@@ -8,6 +8,14 @@ Backend для iOS-приложений с механизмом cloaking для 
 - **Native mode (200)** - показываем легальное приложение/игру (для модераторов Apple)
 - **Casino mode (400)** - открываем WebView с казино (для реальных пользователей)
 
+### GEO-таргетинг
+
+Система автоматически подбирает оффер по региону пользователя:
+1. Юзер приходит с `region="EE"` (Эстония)
+2. Ищем оффер для этого GEO
+3. Если не найден → используем default оффер
+4. Возвращаем URL казино для этого региона
+
 ## Быстрый старт
 
 ### Docker Compose (рекомендуется)
@@ -20,7 +28,7 @@ cp stack.env.example stack.env
 docker compose up -d
 
 # Проверяем
-curl http://localhost:8000/health
+curl http://localhost:8100/health
 ```
 
 ### Локальная разработка
@@ -47,9 +55,9 @@ uvicorn app.main:app --reload --port 8000
 
 | Сервис | URL | Логин / Пароль |
 |--------|-----|----------------|
-| API Docs | http://localhost:8000/docs | - |
-| Admin Panel | http://localhost:8000/admin | admin / admin |
-| Adminer (DB) | http://localhost:8080 | postgres / postgres |
+| API Docs | http://localhost:8100/docs | - |
+| Admin Panel | http://localhost:8100/admin | mazamaka / Zxcvbn321 |
+| Adminer (DB) | http://localhost:8180 | postgres / postgres |
 
 ## API Endpoints
 
@@ -57,10 +65,10 @@ uvicorn app.main:app --reload --port 8000
 
 Инициализация клиента:
 - `200 OK` - native mode
-- `400 Bad Request` - casino mode (с полем `result`)
+- `400 Bad Request` - casino mode (с полем `result` содержащим URL оффера)
 
 ```bash
-curl -X POST http://localhost:8000/api/v1/client/init \
+curl -X POST http://localhost:8100/api/v1/client/init \
   -H "Content-Type: application/json" \
   -H "X-Schema: 1" \
   -d '{
@@ -77,7 +85,7 @@ curl -X POST http://localhost:8000/api/v1/client/init \
 Логирование событий:
 
 ```bash
-curl -X POST http://localhost:8000/api/v1/client/event \
+curl -X POST http://localhost:8100/api/v1/client/event \
   -H "Content-Type: application/json" \
   -H "X-Schema: 1" \
   -d '{
@@ -98,7 +106,9 @@ mobile-cloaking/
 │   ├── api/v1/              # API routes
 │   ├── db/                  # Database
 │   ├── table/               # Models & Views
-│   │   ├── app/             # Apps (bundle_id, mode, casino_url)
+│   │   ├── app/             # Apps (bundle_id, mode)
+│   │   ├── geo/             # GEO regions (EE, HU, PL)
+│   │   ├── offer/           # Offers (casino URLs per GEO)
 │   │   ├── client/          # Clients (devices)
 │   │   ├── event/           # Events
 │   │   └── init_log/        # Init logs
@@ -111,12 +121,41 @@ mobile-cloaking/
 └── requirements.txt
 ```
 
+## База данных
+
+### Основные таблицы
+
+| Таблица | Описание |
+|---------|----------|
+| `apps` | Приложения (bundle_id, mode, настройки) |
+| `geos` | Регионы/страны (ISO коды: EE, HU, PL) |
+| `offers` | Офферы казино (URL привязан к App + Geo) |
+| `clients` | Устройства пользователей |
+| `events` | Аналитические события |
+| `init_logs` | Логи инициализаций |
+
+### Логика выбора оффера
+
+```
+App (mode=casino) + Client (region=EE)
+         ↓
+   Поиск Offer где:
+   - app_id = App.id
+   - geo.code = "EE"
+   - is_active = true
+         ↓
+   Найден? → 400 + offer.url
+   Не найден? → Fallback на geo.is_default=true
+   Нет default? → 200 (native mode)
+```
+
 ## Конфигурация
 
 ```env
 # Database
 POSTGRES_HOST=db
 POSTGRES_PORT=5432
+POSTGRES_EXTERNAL_PORT=5440
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
 POSTGRES_DB=cloaking
@@ -124,13 +163,24 @@ POSTGRES_DB=cloaking
 # App
 DEBUG=true
 WORKERS=4
-PORT=8000
+PORT=8100
 
 # Admin
 ADMIN_LOGIN=admin
 ADMIN_PASSWORD=admin
 AUTH_SECRET=change-me-in-production
+
+# Ports (for docker-compose)
+ADMINER_PORT=8180
 ```
+
+## Порты (по умолчанию)
+
+| Сервис | Порт |
+|--------|------|
+| API/Admin | 8100 |
+| PostgreSQL | 5440 |
+| Adminer | 8180 |
 
 ## Миграции
 
