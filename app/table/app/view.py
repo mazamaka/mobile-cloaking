@@ -10,7 +10,7 @@ class AppView(ModelView):
 
     name = "App"
     name_plural = "Apps"
-    icon = "fa fa-mobile-alt"
+    icon = "ti ti-apps"
 
     fields = [
         "id",

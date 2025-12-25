@@ -10,7 +10,7 @@ class OfferView(ModelView):
 
     name = "Offer"
     name_plural = "Offers"
-    icon = "fa fa-gift"
+    icon = "ti ti-gift"
 
     fields = [
         "id",

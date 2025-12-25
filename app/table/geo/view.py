@@ -10,7 +10,7 @@ class GeoView(ModelView):
 
     name = "Geo"
     name_plural = "Geos"
-    icon = "fa fa-globe"
+    icon = "ti ti-world"
 
     fields = [
         "id",

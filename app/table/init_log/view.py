@@ -10,7 +10,7 @@ class InitLogView(ModelView):
 
     name = "Init Log"
     name_plural = "Init Logs"
-    icon = "fa fa-history"
+    icon = "ti ti-history"
 
     fields = [
         "id",

@@ -10,7 +10,7 @@ class EventView(ModelView):
 
     name = "Event"
     name_plural = "Events"
-    icon = "fa fa-chart-line"
+    icon = "ti ti-chart-line"
 
     fields = [
         "id",

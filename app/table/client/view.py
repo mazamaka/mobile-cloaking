@@ -11,7 +11,7 @@ class ClientView(ModelView):
 
     name = "Client"
     name_plural = "Clients"
-    icon = "fa fa-users"
+    icon = "ti ti-users"
 
     fields = [
         "id",
