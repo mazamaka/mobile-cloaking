@@ -7,7 +7,7 @@ from app.table.link.model import Link
 
 
 class LinkView(ModelView):
-    """Admin view для связок App-Offer-Geo."""
+    """Admin view для связок App + Offer + Geo."""
 
     name = "Link"
     name_plural = "Links"
