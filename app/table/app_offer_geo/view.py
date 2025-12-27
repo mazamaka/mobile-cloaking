@@ -45,7 +45,7 @@ class AppOfferGeoView(ModelView):
 
         session = request.state.session
 
-        if not session.get(App, app_id):
+        if not await session.get(App, app_id):
             raise FormValidationError({"app": "App not found"})
 
         # Check if geo already assigned in this app
@@ -56,8 +56,9 @@ class AppOfferGeoView(ModelView):
         if exclude_id:
             stmt = stmt.where(AppOfferGeo.id != exclude_id)
 
-        if session.execute(stmt).scalar_one_or_none():
-            geo = session.get(Geo, geo_id)
+        result = await session.execute(stmt)
+        if result.scalar_one_or_none():
+            geo = await session.get(Geo, geo_id)
             raise FormValidationError(
                 {"geo": f"Geo '{geo.code if geo else geo_id}' already assigned to another offer"}
             )

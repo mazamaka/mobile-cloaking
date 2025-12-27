@@ -2,7 +2,7 @@ from pathlib import Path
 
 from starlette.requests import Request
 from starlette.responses import Response
-from sqlalchemy import create_engine
+from sqlalchemy.ext.asyncio import create_async_engine
 from starlette.middleware import Middleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette_admin import DropDown
@@ -38,8 +38,8 @@ from config import SETTINGS
 
 def create_admin() -> Admin:
     """Create and configure admin panel."""
-    # Create sync engine for starlette-admin
-    engine = create_engine(SETTINGS.database_url_sync)
+    # Create async engine for starlette-admin
+    engine = create_async_engine(SETTINGS.database_url)
 
     admin = Admin(
         engine,
