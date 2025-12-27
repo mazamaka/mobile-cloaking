@@ -52,15 +52,26 @@ app/
 ├── api/v1/router.py        # APIRouter prefix="/api/v1"
 ├── db/database.py          # AsyncEngine + AsyncSession (asyncpg)
 └── table/                  # Каждая таблица = папка с model/view/route/service
-    ├── client/service.py   # InitService + DecisionEngine (основная логика)
-    └── ...
+    ├── app/                # Приложения (bundle_id, mode, настройки)
+    ├── offer/              # Офферы казино (name, url, priority)
+    ├── geo/                # Регионы (code, is_default)
+    ├── group/              # Группы для организации App и Offer
+    ├── app_offer_geo/      # Связка App ↔ Offer ↔ Geo (triple link)
+    ├── client/             # Устройства пользователей
+    │   └── service.py      # InitService + DecisionEngine (основная логика)
+    ├── event/              # Аналитические события
+    └── init_log/           # Логи запросов /client/init
 ```
 
-**Паттерн table/:** Каждая сущность (`app`, `geo`, `offer`, `client`, `event`, `init_log`) имеет свою папку с:
+**Паттерн table/:** Каждая сущность имеет свою папку с:
 - `model.py` — SQLModel таблица
-- `view.py` — Starlette Admin view
+- `view.py` — Starlette Admin view (icon передавать в конструктор!)
 - `route.py` + `service.py` — для endpoint'ов (client, event)
 - `schemas.py` — Pydantic схемы запросов/ответов
+
+**Ключевые связи:**
+- `App` ↔ `Offer` ↔ `Geo` связаны через `AppOfferGeo` (одно гео = один оффер в приложении)
+- `Group` организует `App` и `Offer` (тип: APP или OFFER)
 
 **Ключевые классы:**
 - `InitService.process_init()` — точка входа обработки `/client/init`
