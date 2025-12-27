@@ -30,19 +30,19 @@ class GeoView(ModelView):
     sortable_fields = ["id", "code", "name", "is_default", "is_active"]
 
     async def before_delete(self, request: Request, obj: Geo) -> None:
-        """Prevent deletion if geo has associated app-offer links."""
+        """Prevent deletion if geo has associated links."""
         from sqlalchemy import func, select
 
-        from app.table.app_offer_geo.model import AppOfferGeo
+        from app.table.link.model import Link
 
         session = request.state.session
         result = await session.execute(
-            select(func.count(AppOfferGeo.id)).where(AppOfferGeo.geo_id == obj.id)
+            select(func.count(Link.id)).where(Link.geo_id == obj.id)
         )
         count = result.scalar() or 0
 
         if count > 0:
-            raise ActionFailed(f"Cannot delete '{obj.code}': has {count} app-offer link(s)")
+            raise ActionFailed(f"Cannot delete '{obj.code}': has {count} link(s)")
 
 
 geo_view = GeoView(Geo, icon="fas fa-globe")

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
-    from app.table.app_offer_geo.model import AppOfferGeo
+    from app.table.link.model import Link
 
 
 class Geo(SQLModel, table=True):
@@ -31,7 +31,7 @@ class Geo(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
     # Relationships
-    app_offer_geos: list["AppOfferGeo"] = Relationship(back_populates="geo")
+    links: list["Link"] = Relationship(back_populates="geo")
 
     def __admin_repr__(self, request) -> str:
         return f"{self.code} ({self.name})"

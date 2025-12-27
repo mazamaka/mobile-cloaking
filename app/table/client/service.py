@@ -5,8 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.table.app.enums import AppMode
 from app.table.app.model import App
-from app.table.app_offer_geo.model import AppOfferGeo
 from app.table.client.model import Client
+from app.table.link.model import Link
 from app.table.client.schemas import (
     InitRequest,
     InitResponseCasino,
@@ -95,19 +95,19 @@ class InitService:
         2. Default geo (geo.is_default=True)
         3. None if no offers found
 
-        Uses COALESCE for priority/weight: override from AppOfferGeo or default from Offer.
+        Uses COALESCE for priority/weight: override from Link or default from Offer.
         """
-        # Build effective priority: COALESCE(aog.priority, o.priority)
-        effective_priority = func.coalesce(AppOfferGeo.priority, Offer.priority)
+        # Build effective priority: COALESCE(link.priority, offer.priority)
+        effective_priority = func.coalesce(Link.priority, Offer.priority)
 
-        # 1. Try exact geo match via AppOfferGeo
+        # 1. Try exact geo match via Link
         stmt = (
             select(Offer)
-            .join(AppOfferGeo, Offer.id == AppOfferGeo.offer_id)
-            .join(Geo, AppOfferGeo.geo_id == Geo.id)
+            .join(Link, Offer.id == Link.offer_id)
+            .join(Geo, Link.geo_id == Geo.id)
             .where(
-                AppOfferGeo.app_id == app_id,
-                AppOfferGeo.is_active == True,  # noqa: E712
+                Link.app_id == app_id,
+                Link.is_active == True,  # noqa: E712
                 Offer.is_active == True,  # noqa: E712
                 Geo.is_active == True,  # noqa: E712
                 Geo.code == region,
@@ -124,11 +124,11 @@ class InitService:
         # 2. Fallback to default geo
         stmt = (
             select(Offer)
-            .join(AppOfferGeo, Offer.id == AppOfferGeo.offer_id)
-            .join(Geo, AppOfferGeo.geo_id == Geo.id)
+            .join(Link, Offer.id == Link.offer_id)
+            .join(Geo, Link.geo_id == Geo.id)
             .where(
-                AppOfferGeo.app_id == app_id,
-                AppOfferGeo.is_active == True,  # noqa: E712
+                Link.app_id == app_id,
+                Link.is_active == True,  # noqa: E712
                 Offer.is_active == True,  # noqa: E712
                 Geo.is_active == True,  # noqa: E712
                 Geo.is_default == True,  # noqa: E712

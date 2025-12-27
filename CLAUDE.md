@@ -56,7 +56,7 @@ app/
     ├── offer/              # Офферы казино (name, url, priority)
     ├── geo/                # Регионы (code, is_default)
     ├── group/              # Группы для организации App и Offer
-    ├── app_offer_geo/      # Связка App ↔ Offer ↔ Geo (triple link)
+    ├── link/               # Связка App ↔ Offer ↔ Geo (одно гео = один оффер)
     ├── client/             # Устройства пользователей
     │   └── service.py      # InitService + DecisionEngine (основная логика)
     ├── event/              # Аналитические события
@@ -70,7 +70,7 @@ app/
 - `schemas.py` — Pydantic схемы запросов/ответов
 
 **Ключевые связи:**
-- `App` ↔ `Offer` ↔ `Geo` связаны через `AppOfferGeo` (одно гео = один оффер в приложении)
+- `App` ↔ `Offer` ↔ `Geo` связаны через `Link` (одно гео = один оффер в приложении)
 - `Group` организует `App` и `Offer` (тип: APP или OFFER)
 
 **Ключевые классы:**

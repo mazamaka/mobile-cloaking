@@ -7,8 +7,8 @@ from sqlmodel import Field, Relationship, SQLModel
 from app.table.app.enums import AppMode, UpdateMode
 
 if TYPE_CHECKING:
-    from app.table.app_offer_geo.model import AppOfferGeo
     from app.table.group.model import Group
+    from app.table.link.model import Link
 
 
 class App(SQLModel, table=True):
@@ -42,7 +42,7 @@ class App(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
     # Relationships
-    app_offer_geos: list["AppOfferGeo"] = Relationship(back_populates="app")
+    links: list["Link"] = Relationship(back_populates="app")
 
     def __admin_repr__(self, request) -> str:
         return self.name or self.bundle_id

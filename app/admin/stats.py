@@ -4,13 +4,13 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.table.app.model import App
 from app.table.app.enums import AppMode
-from app.table.app_offer_geo.model import AppOfferGeo
+from app.table.app.model import App
+from app.table.client.model import Client
 from app.table.geo.model import Geo
 from app.table.group.model import Group, GroupType
+from app.table.link.model import Link
 from app.table.offer.model import Offer
-from app.table.client.model import Client
 
 
 async def get_dashboard_stats(session: AsyncSession) -> dict:
@@ -34,9 +34,9 @@ async def get_dashboard_stats(session: AsyncSession) -> dict:
     geos_total = await session.scalar(select(func.count(Geo.id)))
 
     # Links count
-    links_total = await session.scalar(select(func.count(AppOfferGeo.id)))
+    links_total = await session.scalar(select(func.count(Link.id)))
     links_active = await session.scalar(
-        select(func.count(AppOfferGeo.id)).where(AppOfferGeo.is_active == True)  # noqa: E712
+        select(func.count(Link.id)).where(Link.is_active == True)  # noqa: E712
     )
 
     # Groups count
@@ -143,16 +143,16 @@ async def get_geos_list(session: AsyncSession) -> list[dict]:
     ]
 
 
-async def get_app_offer_geo_matrix(session: AsyncSession) -> list[dict]:
-    """Get all App-Offer-Geo links as matrix data."""
+async def get_link_matrix(session: AsyncSession) -> list[dict]:
+    """Get all Links as matrix data."""
     stmt = (
-        select(AppOfferGeo)
+        select(Link)
         .options(
-            selectinload(AppOfferGeo.app),
-            selectinload(AppOfferGeo.offer),
-            selectinload(AppOfferGeo.geo),
+            selectinload(Link.app),
+            selectinload(Link.offer),
+            selectinload(Link.geo),
         )
-        .order_by(AppOfferGeo.app_id, AppOfferGeo.geo_id)
+        .order_by(Link.app_id, Link.geo_id)
     )
     result = await session.execute(stmt)
     links = result.scalars().all()
@@ -178,7 +178,9 @@ async def get_app_offer_geo_matrix(session: AsyncSession) -> list[dict]:
     ]
 
 
-async def create_app_offer_geo_link(
+
+
+async def create_link(
     session: AsyncSession,
     app_id: int,
     offer_id: int,
@@ -186,8 +188,8 @@ async def create_app_offer_geo_link(
     priority: int | None = None,
     weight: int | None = None,
 ) -> dict:
-    """Create a new App-Offer-Geo link."""
-    link = AppOfferGeo(
+    """Create a new Link."""
+    link = Link(
         app_id=app_id,
         offer_id=offer_id,
         geo_id=geo_id,
@@ -200,9 +202,11 @@ async def create_app_offer_geo_link(
     return {"id": link.id, "success": True}
 
 
-async def delete_app_offer_geo_link(session: AsyncSession, link_id: int) -> dict:
-    """Delete an App-Offer-Geo link."""
-    stmt = select(AppOfferGeo).where(AppOfferGeo.id == link_id)
+
+
+async def delete_link(session: AsyncSession, link_id: int) -> dict:
+    """Delete a Link."""
+    stmt = select(Link).where(Link.id == link_id)
     result = await session.execute(stmt)
     link = result.scalar_one_or_none()
 
@@ -212,9 +216,11 @@ async def delete_app_offer_geo_link(session: AsyncSession, link_id: int) -> dict
     return {"success": False, "error": "Link not found"}
 
 
-async def toggle_app_offer_geo_link(session: AsyncSession, link_id: int) -> dict:
-    """Toggle is_active status of an App-Offer-Geo link."""
-    stmt = select(AppOfferGeo).where(AppOfferGeo.id == link_id)
+
+
+async def toggle_link(session: AsyncSession, link_id: int) -> dict:
+    """Toggle is_active status of a Link."""
+    stmt = select(Link).where(Link.id == link_id)
     result = await session.execute(stmt)
     link = result.scalar_one_or_none()
 
@@ -222,6 +228,8 @@ async def toggle_app_offer_geo_link(session: AsyncSession, link_id: int) -> dict
         link.is_active = not link.is_active
         return {"success": True, "is_active": link.is_active}
     return {"success": False, "error": "Link not found"}
+
+
 
 
 async def get_groups_list(session: AsyncSession, group_type: GroupType | None = None) -> list[dict]:

@@ -10,33 +10,33 @@ if TYPE_CHECKING:
     from app.table.offer.model import Offer
 
 
-class AppOfferGeo(SQLModel, table=True):
-    """Triple link: App + Offer + Geo.
+class Link(SQLModel, table=True):
+    """Связь App + Offer + Geo.
 
     CONSTRAINT: В рамках одного App каждый Geo может быть привязан
     только к одному Offer. Это гарантируется UNIQUE(app_id, geo_id).
     """
 
-    __tablename__ = "app_offer_geo"
+    __tablename__ = "links"
     __table_args__ = (
-        UniqueConstraint("app_id", "geo_id", name="uq_app_offer_geo_app_geo"),
+        UniqueConstraint("app_id", "geo_id", name="uq_link_app_geo"),
     )
 
     id: int | None = Field(default=None, primary_key=True)
 
     # App relation
     app_id: int = Field(foreign_key="apps.id", index=True)
-    app: Optional["App"] = Relationship(back_populates="app_offer_geos")
+    app: Optional["App"] = Relationship(back_populates="links")
 
     # Offer relation
     offer_id: int = Field(foreign_key="offers.id", index=True)
-    offer: Optional["Offer"] = Relationship(back_populates="app_offer_geos")
+    offer: Optional["Offer"] = Relationship(back_populates="links")
 
     # Geo relation
     geo_id: int = Field(foreign_key="geos.id", index=True)
-    geo: Optional["Geo"] = Relationship(back_populates="app_offer_geos")
+    geo: Optional["Geo"] = Relationship(back_populates="links")
 
-    # Override priority/weight per app-offer-geo (nullable = use offer defaults)
+    # Override priority/weight per link (nullable = use offer defaults)
     priority: int | None = Field(default=None)
     weight: int | None = Field(default=None)
 

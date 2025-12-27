@@ -3,17 +3,14 @@ from starlette_admin import BooleanField, HasOne, IntegerField, StringField
 from starlette_admin.contrib.sqlmodel import ModelView
 from starlette_admin.exceptions import FormValidationError
 
-from app.table.app_offer_geo.model import AppOfferGeo
+from app.table.link.model import Link
 
 
-class AppOfferGeoView(ModelView):
-    """Admin view for AppOfferGeo triple link.
+class LinkView(ModelView):
+    """Admin view для связок App-Offer-Geo."""
 
-    Manages app-offer-geo assignments with uniqueness validation.
-    """
-
-    name = "App-Offer-Geo"
-    name_plural = "App-Offer-Geo Links"
+    name = "Link"
+    name_plural = "Links"
 
     fields = [
         IntegerField("id", label="ID", help_text="Уникальный идентификатор связки"),
@@ -49,12 +46,12 @@ class AppOfferGeoView(ModelView):
             raise FormValidationError({"app": "App not found"})
 
         # Check if geo already assigned in this app
-        stmt = select(AppOfferGeo).where(
-            AppOfferGeo.app_id == app_id,
-            AppOfferGeo.geo_id == geo_id,
+        stmt = select(Link).where(
+            Link.app_id == app_id,
+            Link.geo_id == geo_id,
         )
         if exclude_id:
-            stmt = stmt.where(AppOfferGeo.id != exclude_id)
+            stmt = stmt.where(Link.id != exclude_id)
 
         result = await session.execute(stmt)
         if result.scalar_one_or_none():
@@ -64,7 +61,7 @@ class AppOfferGeoView(ModelView):
             )
 
     async def before_create(
-        self, request: Request, data: dict, obj: AppOfferGeo
+        self, request: Request, data: dict, obj: Link
     ) -> None:
         """Validate uniqueness before create."""
         app_id = data.get("app")
@@ -74,7 +71,7 @@ class AppOfferGeoView(ModelView):
             await self._validate_geo_uniqueness(request, app_id, geo_id)
 
     async def before_edit(
-        self, request: Request, data: dict, obj: AppOfferGeo
+        self, request: Request, data: dict, obj: Link
     ) -> None:
         """Validate uniqueness when editing."""
         app_id = data.get("app", obj.app_id)
@@ -84,4 +81,4 @@ class AppOfferGeoView(ModelView):
             await self._validate_geo_uniqueness(request, app_id, geo_id, exclude_id=obj.id)
 
 
-app_offer_geo_view = AppOfferGeoView(AppOfferGeo, icon="fas fa-project-diagram")
+link_view = LinkView(Link, icon="fas fa-link")

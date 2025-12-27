@@ -27,14 +27,14 @@ class AppView(ModelView):
         EnumField("update_mode", enum=UpdateMode, label="Update Mode", help_text="SOFT = предложение, FORCE = принудительное обновление"),
         StringField("appstore_url", label="App Store URL", help_text="Ссылка на приложение в App Store"),
         BooleanField("is_active", label="Active", help_text="Активно ли приложение (неактивные игнорируются)"),
-        HasMany("app_offer_geos", identity="app-offer-geo", label="Offer-Geo Links", help_text="Связки приложения с офферами и гео"),
+        HasMany("links", identity="link", label="Links", help_text="Связки приложения с офферами и гео"),
         StringField("created_at", label="Created At", help_text="Дата и время создания записи"),
         StringField("updated_at", label="Updated At", help_text="Дата и время последнего обновления"),
     ]
 
-    exclude_fields_from_list = ["appstore_url", "app_offer_geos", "created_at", "updated_at"]
-    exclude_fields_from_create = ["id", "app_offer_geos", "created_at", "updated_at"]
-    exclude_fields_from_edit = ["id", "app_offer_geos", "created_at", "updated_at"]
+    exclude_fields_from_list = ["appstore_url", "links", "created_at", "updated_at"]
+    exclude_fields_from_create = ["id", "links", "created_at", "updated_at"]
+    exclude_fields_from_edit = ["id", "links", "created_at", "updated_at"]
 
     searchable_fields = ["bundle_id", "apple_id", "name"]
     sortable_fields = ["id", "bundle_id", "name", "mode", "is_active", "created_at"]
@@ -43,8 +43,8 @@ class AppView(ModelView):
         """Prevent deletion if app has associated clients or offer-geo links."""
         from sqlalchemy import func, select
 
-        from app.table.app_offer_geo.model import AppOfferGeo
         from app.table.client.model import Client
+        from app.table.link.model import Link
 
         session = request.state.session
 
@@ -60,16 +60,16 @@ class AppView(ModelView):
                 f"has {clients_count} client(s)"
             )
 
-        # Check app-offer-geo links
+        # Check links
         result = await session.execute(
-            select(func.count(AppOfferGeo.id)).where(AppOfferGeo.app_id == obj.id)
+            select(func.count(Link.id)).where(Link.app_id == obj.id)
         )
         links_count = result.scalar() or 0
 
         if links_count > 0:
             raise ActionFailed(
                 f"Cannot delete '{obj.name or obj.bundle_id}': "
-                f"has {links_count} offer-geo link(s)"
+                f"has {links_count} link(s)"
             )
 
 
