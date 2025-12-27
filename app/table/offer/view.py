@@ -1,5 +1,7 @@
+from starlette.requests import Request
 from starlette_admin import BooleanField, HasMany, HasOne, IntegerField, StringField
 from starlette_admin.contrib.sqlmodel import ModelView
+from starlette_admin.exceptions import ActionFailed
 
 from app.table.offer.model import Offer
 
@@ -32,6 +34,24 @@ class OfferView(ModelView):
 
     searchable_fields = ["name", "url"]
     sortable_fields = ["id", "name", "priority", "is_active"]
+
+    async def before_delete(self, request: Request, obj: Offer) -> None:
+        """Prevent deletion if offer has associated app-geo links."""
+        from sqlalchemy import func, select
+
+        from app.table.app_offer_geo.model import AppOfferGeo
+
+        async with request.state.session as session:
+            stmt = select(func.count(AppOfferGeo.id)).where(AppOfferGeo.offer_id == obj.id)
+            result = await session.execute(stmt)
+            count = result.scalar() or 0
+
+            if count > 0:
+                raise ActionFailed(
+                    f"Cannot delete offer '{obj.name}': "
+                    f"it has {count} app-geo link(s). "
+                    f"Delete the links first or deactivate the offer."
+                )
 
 
 offer_view = OfferView(Offer, icon="fas fa-gift")

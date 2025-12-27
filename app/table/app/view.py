@@ -1,5 +1,7 @@
+from starlette.requests import Request
 from starlette_admin import BooleanField, EnumField, HasMany, HasOne, IntegerField, StringField
 from starlette_admin.contrib.sqlmodel import ModelView
+from starlette_admin.exceptions import ActionFailed
 
 from app.table.app.enums import AppMode, UpdateMode
 from app.table.app.model import App
@@ -36,6 +38,38 @@ class AppView(ModelView):
 
     searchable_fields = ["bundle_id", "apple_id", "name"]
     sortable_fields = ["id", "bundle_id", "name", "mode", "is_active", "created_at"]
+
+    async def before_delete(self, request: Request, obj: App) -> None:
+        """Prevent deletion if app has associated clients or offer-geo links."""
+        from sqlalchemy import func, select
+
+        from app.table.app_offer_geo.model import AppOfferGeo
+        from app.table.client.model import Client
+
+        async with request.state.session as session:
+            # Check clients
+            stmt = select(func.count(Client.id)).where(Client.app_id == obj.id)
+            result = await session.execute(stmt)
+            clients_count = result.scalar() or 0
+
+            if clients_count > 0:
+                raise ActionFailed(
+                    f"Cannot delete app '{obj.name or obj.bundle_id}': "
+                    f"it has {clients_count} associated client(s). "
+                    f"Delete clients first or deactivate the app."
+                )
+
+            # Check app-offer-geo links
+            stmt = select(func.count(AppOfferGeo.id)).where(AppOfferGeo.app_id == obj.id)
+            result = await session.execute(stmt)
+            links_count = result.scalar() or 0
+
+            if links_count > 0:
+                raise ActionFailed(
+                    f"Cannot delete app '{obj.name or obj.bundle_id}': "
+                    f"it has {links_count} offer-geo link(s). "
+                    f"Delete the links first or deactivate the app."
+                )
 
 
 app_view = AppView(App, icon="fas fa-mobile-alt")
