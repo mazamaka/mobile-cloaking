@@ -1,5 +1,5 @@
 from starlette.requests import Request
-from starlette_admin import EnumField, IntegerField, StringField
+from starlette_admin import EnumField, HasOne, IntegerField, StringField
 from starlette_admin.contrib.sqlmodel import ModelView
 
 from app.schemas.common import ATTStatus
@@ -14,20 +14,20 @@ class ClientView(ModelView):
     icon = "fas fa-users"
 
     fields = [
-        "id",
-        "internal_id",
-        "app_id",
-        StringField("app_version", label="App Version"),
-        StringField("language", label="Language"),
-        StringField("timezone", label="Timezone"),
-        StringField("region", label="Region"),
-        EnumField("att_status", enum=ATTStatus, label="ATT Status"),
-        StringField("idfa", label="IDFA"),
-        StringField("appsflyer_id", label="AppsFlyer ID"),
-        StringField("push_token", label="Push Token"),
-        "first_seen_at",
-        "last_seen_at",
-        IntegerField("sessions_count", label="Sessions"),
+        IntegerField("id", label="ID", help_text="Уникальный идентификатор клиента в БД"),
+        StringField("internal_id", label="Internal ID", help_text="UUID клиента от устройства"),
+        HasOne("app", identity="app", label="App", help_text="Приложение клиента"),
+        StringField("app_version", label="App Version", help_text="Версия приложения на устройстве"),
+        StringField("language", label="Language", help_text="Язык устройства (en, ru, de и т.д.)"),
+        StringField("timezone", label="Timezone", help_text="Часовой пояс устройства"),
+        StringField("region", label="Region", help_text="ISO код региона устройства (EE, US и т.д.)"),
+        EnumField("att_status", enum=ATTStatus, label="ATT Status", help_text="Статус App Tracking Transparency"),
+        StringField("idfa", label="IDFA", help_text="Identifier for Advertisers (если разрешен)"),
+        StringField("appsflyer_id", label="AppsFlyer ID", help_text="ID атрибуции AppsFlyer"),
+        StringField("push_token", label="Push Token", help_text="Токен для Push-уведомлений"),
+        StringField("first_seen_at", label="First Seen At", help_text="Дата первого запроса клиента"),
+        StringField("last_seen_at", label="Last Seen At", help_text="Дата последнего запроса клиента"),
+        IntegerField("sessions_count", label="Sessions", help_text="Количество сессий (init запросов)"),
     ]
 
     exclude_fields_from_list = [

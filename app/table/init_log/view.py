@@ -1,5 +1,5 @@
 from starlette.requests import Request
-from starlette_admin import IntegerField
+from starlette_admin import HasOne, IntegerField, JSONField, StringField
 from starlette_admin.contrib.sqlmodel import ModelView
 
 from app.table.init_log.model import InitLog
@@ -13,13 +13,13 @@ class InitLogView(ModelView):
     icon = "fas fa-history"
 
     fields = [
-        "id",
-        "client_id",
-        "request_headers",
-        "request_body",
-        IntegerField("response_code", label="Response Code"),
-        "response_body",
-        "created_at",
+        IntegerField("id", label="ID", help_text="Уникальный идентификатор лога"),
+        HasOne("client", identity="client", label="Client", help_text="Клиент, выполнивший init запрос"),
+        JSONField("request_headers", label="Request Headers", help_text="HTTP заголовки запроса"),
+        JSONField("request_body", label="Request Body", help_text="Тело запроса (JSON)"),
+        IntegerField("response_code", label="Response Code", help_text="HTTP код ответа (200=native, 400=casino)"),
+        JSONField("response_body", label="Response Body", help_text="Тело ответа (JSON)"),
+        StringField("created_at", label="Created At", help_text="Время создания записи"),
     ]
 
     exclude_fields_from_list = ["request_headers", "request_body", "response_body"]

@@ -1,5 +1,4 @@
-from starlette.requests import Request
-from starlette_admin import BooleanField, StringField
+from starlette_admin import BooleanField, IntegerField, StringField
 from starlette_admin.contrib.sqlmodel import ModelView
 
 from app.table.geo.model import Geo
@@ -13,13 +12,13 @@ class GeoView(ModelView):
     icon = "fas fa-globe"
 
     fields = [
-        "id",
-        StringField("code", label="Code (ISO)", help_text="ISO 3166-1 alpha-2: EE, HU, PL"),
-        StringField("name", label="Country Name"),
-        BooleanField("is_default", label="Default (fallback)"),
-        BooleanField("is_active", label="Active"),
-        "created_at",
-        "updated_at",
+        IntegerField("id", label="ID", help_text="Уникальный идентификатор региона"),
+        StringField("code", label="Code (ISO)", help_text="ISO 3166-1 alpha-2 код страны: EE, HU, PL, US и т.д."),
+        StringField("name", label="Country Name", help_text="Полное название страны/региона"),
+        BooleanField("is_default", label="Default (fallback)", help_text="Использовать как fallback, если точное гео не найдено"),
+        BooleanField("is_active", label="Active", help_text="Активен ли регион (неактивные игнорируются)"),
+        StringField("created_at", label="Created At", help_text="Дата и время создания записи"),
+        StringField("updated_at", label="Updated At", help_text="Дата и время последнего обновления"),
     ]
 
     exclude_fields_from_list = ["created_at", "updated_at"]

@@ -1,10 +1,11 @@
 from datetime import datetime
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.table.app.enums import AppMode
 from app.table.app.model import App
+from app.table.app_offer_geo.model import AppOfferGeo
 from app.table.client.model import Client
 from app.table.client.schemas import (
     InitRequest,
@@ -93,18 +94,25 @@ class InitService:
         1. Exact geo match (e.g., region="EE" matches geo.code="EE")
         2. Default geo (geo.is_default=True)
         3. None if no offers found
+
+        Uses COALESCE for priority/weight: override from AppOfferGeo or default from Offer.
         """
-        # 1. Try exact geo match
+        # Build effective priority: COALESCE(aog.priority, o.priority)
+        effective_priority = func.coalesce(AppOfferGeo.priority, Offer.priority)
+
+        # 1. Try exact geo match via AppOfferGeo
         stmt = (
             select(Offer)
-            .join(Geo)
+            .join(AppOfferGeo, Offer.id == AppOfferGeo.offer_id)
+            .join(Geo, AppOfferGeo.geo_id == Geo.id)
             .where(
-                Offer.app_id == app_id,
+                AppOfferGeo.app_id == app_id,
+                AppOfferGeo.is_active == True,  # noqa: E712
                 Offer.is_active == True,  # noqa: E712
                 Geo.is_active == True,  # noqa: E712
                 Geo.code == region,
             )
-            .order_by(Offer.priority.desc())
+            .order_by(effective_priority.desc())
             .limit(1)
         )
         result = await self.session.execute(stmt)
@@ -116,14 +124,16 @@ class InitService:
         # 2. Fallback to default geo
         stmt = (
             select(Offer)
-            .join(Geo)
+            .join(AppOfferGeo, Offer.id == AppOfferGeo.offer_id)
+            .join(Geo, AppOfferGeo.geo_id == Geo.id)
             .where(
-                Offer.app_id == app_id,
+                AppOfferGeo.app_id == app_id,
+                AppOfferGeo.is_active == True,  # noqa: E712
                 Offer.is_active == True,  # noqa: E712
                 Geo.is_active == True,  # noqa: E712
                 Geo.is_default == True,  # noqa: E712
             )
-            .order_by(Offer.priority.desc())
+            .order_by(effective_priority.desc())
             .limit(1)
         )
         result = await self.session.execute(stmt)

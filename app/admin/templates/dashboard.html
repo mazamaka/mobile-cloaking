@@ -1,0 +1,1438 @@
+{% extends "layout.html" %}
+
+{% block head_css %}
+<style>
+  :root {
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --info: #3b82f6;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+  }
+
+  .dashboard {
+    padding: 1.5rem;
+    background: var(--gray-50);
+    min-height: calc(100vh - 60px);
+  }
+
+  .dashboard-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .dashboard-header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--gray-800);
+    margin: 0;
+  }
+
+  .dashboard-header p {
+    color: var(--gray-600);
+    margin: 0.25rem 0 0;
+  }
+
+  /* KPI Cards */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .kpi-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+
+  .kpi-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: white;
+  }
+
+  .kpi-icon.apps { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+  .kpi-icon.offers { background: linear-gradient(135deg, #22c55e, #16a34a); }
+  .kpi-icon.geos { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+  .kpi-icon.links { background: linear-gradient(135deg, #f59e0b, #d97706); }
+  .kpi-icon.clients { background: linear-gradient(135deg, #ec4899, #db2777); }
+
+  .kpi-content {
+    flex: 1;
+  }
+
+  .kpi-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--gray-800);
+    line-height: 1;
+  }
+
+  .kpi-label {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+    margin-top: 0.25rem;
+  }
+
+  .kpi-meta {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    margin-top: 0.25rem;
+  }
+
+  /* Main Content Grid */
+  .content-grid {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 1.5rem;
+  }
+
+  @media (max-width: 1200px) {
+    .content-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Cards */
+  .card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    overflow: hidden;
+  }
+
+  .card-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .card-body {
+    padding: 1.25rem;
+  }
+
+  /* Form Styles */
+  .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .form-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--gray-700);
+    margin-bottom: 0.375rem;
+  }
+
+  .form-select, .form-input {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    border: 1px solid var(--gray-300);
+    border-radius: 8px;
+    font-size: 0.875rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background: white;
+  }
+
+  .form-select:focus, .form-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background: var(--primary-dark);
+  }
+
+  .btn-primary:disabled {
+    background: var(--gray-300);
+    cursor: not-allowed;
+  }
+
+  .btn-block {
+    width: 100%;
+  }
+
+  .btn-sm {
+    padding: 0.375rem 0.625rem;
+    font-size: 0.75rem;
+  }
+
+  .btn-danger {
+    background: var(--danger);
+    color: white;
+  }
+
+  .btn-danger:hover {
+    background: #dc2626;
+  }
+
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--gray-300);
+    color: var(--gray-700);
+  }
+
+  .btn-outline:hover {
+    background: var(--gray-100);
+  }
+
+  /* Matrix Table */
+  .matrix-container {
+    overflow-x: auto;
+  }
+
+  .matrix-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  .matrix-table th {
+    background: var(--gray-50);
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--gray-700);
+    border-bottom: 2px solid var(--gray-200);
+    white-space: nowrap;
+  }
+
+  .matrix-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--gray-100);
+    vertical-align: middle;
+  }
+
+  .matrix-table tr:hover {
+    background: var(--gray-50);
+  }
+
+  .app-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .app-badge {
+    font-size: 0.625rem;
+    padding: 0.125rem 0.375rem;
+    border-radius: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .app-badge.casino {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .app-badge.native {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+
+  .geo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    background: var(--gray-100);
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.8125rem;
+  }
+
+  .geo-badge.default {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .geo-badge i {
+    font-size: 0.75rem;
+  }
+
+  .offer-cell {
+    font-weight: 500;
+  }
+
+  .priority-badge {
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    background: var(--gray-100);
+    border-radius: 4px;
+    font-size: 0.75rem;
+    color: var(--gray-600);
+    margin-left: 0.5rem;
+  }
+
+  .status-toggle {
+    width: 36px;
+    height: 20px;
+    background: var(--gray-300);
+    border-radius: 10px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .status-toggle.active {
+    background: var(--success);
+  }
+
+  .status-toggle::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background: white;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+
+  .status-toggle.active::after {
+    transform: translateX(16px);
+  }
+
+  .actions-cell {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .action-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .action-btn.delete {
+    background: #fee2e2;
+    color: var(--danger);
+  }
+
+  .action-btn.delete:hover {
+    background: var(--danger);
+    color: white;
+  }
+
+  /* Filter Tabs */
+  .filter-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .filter-tab {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid var(--gray-200);
+    background: white;
+    color: var(--gray-600);
+  }
+
+  .filter-tab:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  .filter-tab.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+  }
+
+  /* Empty State */
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--gray-500);
+  }
+
+  .empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+  }
+
+  .empty-state p {
+    margin: 0;
+  }
+
+  /* Loading */
+  .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--gray-200);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Toast Notifications */
+  .toast-container {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .toast {
+    padding: 0.875rem 1.25rem;
+    border-radius: 8px;
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    animation: slideIn 0.3s ease;
+  }
+
+  .toast.success { background: var(--success); }
+  .toast.error { background: var(--danger); }
+  .toast.info { background: var(--info); }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    border-bottom: 2px solid var(--gray-200);
+    margin-bottom: 1rem;
+  }
+
+  .tab {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--gray-600);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.2s;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+  }
+
+  .tab:hover {
+    color: var(--primary);
+  }
+
+  .tab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+  }
+
+  .tab-content {
+    display: none;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  /* Collapsible */
+  .collapsible-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background: var(--gray-50);
+    border-radius: 8px;
+    cursor: pointer;
+    margin-bottom: 0.5rem;
+    transition: background 0.2s;
+  }
+
+  .collapsible-header:hover {
+    background: var(--gray-100);
+  }
+
+  .collapsible-header h3 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .collapsible-header i.arrow {
+    transition: transform 0.2s;
+  }
+
+  .collapsible-header.open i.arrow {
+    transform: rotate(180deg);
+  }
+
+  .collapsible-content {
+    display: none;
+    padding: 1rem 0;
+  }
+
+  .collapsible-content.open {
+    display: block;
+  }
+
+  /* Quick create buttons */
+  .quick-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .quick-action-btn {
+    flex: 1;
+    padding: 0.75rem;
+    border: 2px dashed var(--gray-300);
+    border-radius: 8px;
+    background: white;
+    color: var(--gray-600);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .quick-action-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: rgba(99, 102, 241, 0.05);
+  }
+
+  .quick-action-btn i {
+    font-size: 1rem;
+  }
+
+  /* Modal */
+  .dashboard-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.6);
+    z-index: 999999;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .dm-dialog {
+    background: white;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    animation: modalIn 0.2s ease;
+  }
+
+  @keyframes modalIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .dm-header {
+    padding: 1.25rem;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .dm-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .dm-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: var(--gray-100);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+
+  .dm-close:hover {
+    background: var(--gray-200);
+  }
+
+  .dm-body {
+    padding: 1.25rem;
+  }
+
+  .dm-footer {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid var(--gray-200);
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+  <div class="dashboard-header">
+    <h1>App-Offer-Geo Dashboard</h1>
+    <p>Manage your app targeting configuration</p>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid" id="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-icon apps"><i class="fas fa-mobile-alt"></i></div>
+      <div class="kpi-content">
+        <div class="kpi-value" id="kpi-apps">-</div>
+        <div class="kpi-label">Applications</div>
+        <div class="kpi-meta" id="kpi-apps-meta"></div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon offers"><i class="fas fa-gift"></i></div>
+      <div class="kpi-content">
+        <div class="kpi-value" id="kpi-offers">-</div>
+        <div class="kpi-label">Offers</div>
+        <div class="kpi-meta" id="kpi-offers-meta"></div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon geos"><i class="fas fa-globe"></i></div>
+      <div class="kpi-content">
+        <div class="kpi-value" id="kpi-geos">-</div>
+        <div class="kpi-label">Geo Regions</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon links"><i class="fas fa-project-diagram"></i></div>
+      <div class="kpi-content">
+        <div class="kpi-value" id="kpi-links">-</div>
+        <div class="kpi-label">Active Links</div>
+        <div class="kpi-meta" id="kpi-links-meta"></div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon clients"><i class="fas fa-users"></i></div>
+      <div class="kpi-content">
+        <div class="kpi-value" id="kpi-clients">-</div>
+        <div class="kpi-label">Clients</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="content-grid">
+    <!-- Create Panel -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">
+          <i class="fas fa-plus-circle"></i>
+          Quick Create
+        </h2>
+      </div>
+      <div class="card-body">
+        <!-- Quick Action Buttons -->
+        <div class="quick-actions">
+          <button class="quick-action-btn" onclick="openModal('app')">
+            <i class="fas fa-mobile-alt"></i> App
+          </button>
+          <button class="quick-action-btn" onclick="openModal('offer')">
+            <i class="fas fa-gift"></i> Offer
+          </button>
+          <button class="quick-action-btn" onclick="openModal('geo')">
+            <i class="fas fa-globe"></i> Geo
+          </button>
+        </div>
+
+        <!-- Create Link Form -->
+        <div class="collapsible-header open" onclick="toggleCollapsible(this)">
+          <h3><i class="fas fa-project-diagram"></i> Create Link</h3>
+          <i class="fas fa-chevron-down arrow"></i>
+        </div>
+        <div class="collapsible-content open">
+          <form id="create-link-form">
+            <div class="form-group">
+              <label class="form-label">Application</label>
+              <select class="form-select" id="select-app" required>
+                <option value="">Select app...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Offer</label>
+              <select class="form-select" id="select-offer" required>
+                <option value="">Select offer...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Geo Region</label>
+              <select class="form-select" id="select-geo" required>
+                <option value="">Select geo...</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Priority Override</label>
+                <input type="number" class="form-input" id="input-priority" placeholder="Default">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Weight Override</label>
+                <input type="number" class="form-input" id="input-weight" placeholder="Default">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" id="btn-create">
+              <i class="fas fa-link"></i>
+              Create Link
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Matrix Table -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">
+          <i class="fas fa-th"></i>
+          App-Offer-Geo Matrix
+        </h2>
+        <button class="btn btn-outline btn-sm" onclick="loadMatrix()">
+          <i class="fas fa-sync-alt"></i>
+          Refresh
+        </button>
+      </div>
+      <div class="card-body" style="padding: 0;">
+        <!-- Filter Tabs -->
+        <div style="padding: 1rem 1.25rem 0;">
+          <div class="filter-tabs" id="app-filters">
+            <button class="filter-tab active" data-app="all">All Apps</button>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="matrix-container">
+          <table class="matrix-table" id="matrix-table">
+            <thead>
+              <tr>
+                <th>Application</th>
+                <th>Geo</th>
+                <th>Offer</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="matrix-body">
+              <tr>
+                <td colspan="6">
+                  <div class="loading">
+                    <div class="spinner"></div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Create App -->
+<div class="dashboard-modal-overlay" id="modal-app">
+  <div class="dm-dialog">
+    <div class="dm-header">
+      <h3 class="dm-title"><i class="fas fa-mobile-alt"></i> Create New App</h3>
+      <button class="dm-close" onclick="closeModal('app')"><i class="fas fa-times"></i></button>
+    </div>
+    <form id="form-create-app" onsubmit="createApp(event)">
+      <div class="dm-body">
+        <div class="form-group">
+          <label class="form-label">Bundle ID *</label>
+          <input type="text" class="form-input" id="app-bundle-id" placeholder="com.example.app" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">App Name</label>
+          <input type="text" class="form-input" id="app-name" placeholder="My App">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Apple ID</label>
+          <input type="text" class="form-input" id="app-apple-id" placeholder="1234567890">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mode</label>
+          <select class="form-select" id="app-mode">
+            <option value="native">Native</option>
+            <option value="casino">Casino</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Group</label>
+          <select class="form-select" id="app-group">
+            <option value="">No group</option>
+          </select>
+        </div>
+      </div>
+      <div class="dm-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('app')">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="btn-create-app">
+          <i class="fas fa-plus"></i> Create App
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Create Offer -->
+<div class="dashboard-modal-overlay" id="modal-offer">
+  <div class="dm-dialog">
+    <div class="dm-header">
+      <h3 class="dm-title"><i class="fas fa-gift"></i> Create New Offer</h3>
+      <button class="dm-close" onclick="closeModal('offer')"><i class="fas fa-times"></i></button>
+    </div>
+    <form id="form-create-offer" onsubmit="createOffer(event)">
+      <div class="dm-body">
+        <div class="form-group">
+          <label class="form-label">Offer Name *</label>
+          <input type="text" class="form-input" id="offer-name" placeholder="Offer name" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">URL *</label>
+          <input type="url" class="form-input" id="offer-url" placeholder="https://example.com/offer" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Priority</label>
+            <input type="number" class="form-input" id="offer-priority" value="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Weight</label>
+            <input type="number" class="form-input" id="offer-weight" value="100">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Group</label>
+          <select class="form-select" id="offer-group">
+            <option value="">No group</option>
+          </select>
+        </div>
+      </div>
+      <div class="dm-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('offer')">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="btn-create-offer">
+          <i class="fas fa-plus"></i> Create Offer
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Create Geo -->
+<div class="dashboard-modal-overlay" id="modal-geo">
+  <div class="dm-dialog">
+    <div class="dm-header">
+      <h3 class="dm-title"><i class="fas fa-globe"></i> Create New Geo</h3>
+      <button class="dm-close" onclick="closeModal('geo')"><i class="fas fa-times"></i></button>
+    </div>
+    <form id="form-create-geo" onsubmit="createGeo(event)">
+      <div class="dm-body">
+        <div class="form-group">
+          <label class="form-label">Geo Code *</label>
+          <input type="text" class="form-input" id="geo-code" placeholder="US, EE, HU..." maxlength="10" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Name *</label>
+          <input type="text" class="form-input" id="geo-name" placeholder="Country name" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+            <input type="checkbox" id="geo-is-default" style="width: auto;">
+            <span>Default (fallback geo)</span>
+          </label>
+        </div>
+      </div>
+      <div class="dm-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('geo')">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="btn-create-geo">
+          <i class="fas fa-plus"></i> Create Geo
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+const API_BASE = '/api/v1/dashboard';
+
+// State
+let apps = [];
+let offers = [];
+let geos = [];
+let matrix = [];
+let appGroups = [];
+let offerGroups = [];
+let currentAppFilter = 'all';
+
+// Collapsible toggle
+window.toggleCollapsible = function(header) {
+  header.classList.toggle('open');
+  header.nextElementSibling.classList.toggle('open');
+}
+
+// Modal functions
+window.openModal = function(type) {
+  const modal = document.getElementById(`modal-${type}`);
+  if (modal) {
+    modal.style.display = 'flex';
+    if (type === 'app') loadAppGroups();
+    if (type === 'offer') loadOfferGroups();
+  }
+}
+
+window.closeModal = function(type) {
+  const modal = document.getElementById(`modal-${type}`);
+  if (modal) {
+    modal.style.display = 'none';
+    document.getElementById(`form-create-${type}`).reset();
+  }
+}
+
+// Close modal on overlay click
+document.querySelectorAll('.dashboard-modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      overlay.style.display = 'none';
+    }
+  });
+});
+
+// Load groups
+async function loadAppGroups() {
+  try {
+    const res = await fetch(`${API_BASE}/groups?type=app`);
+    appGroups = await res.json();
+    const select = document.getElementById('app-group');
+    select.innerHTML = '<option value="">No group</option>';
+    appGroups.forEach(g => {
+      select.innerHTML += `<option value="${g.id}">${g.name}</option>`;
+    });
+  } catch (e) {
+    console.error('Failed to load app groups:', e);
+  }
+}
+
+async function loadOfferGroups() {
+  try {
+    const res = await fetch(`${API_BASE}/groups?type=offer`);
+    offerGroups = await res.json();
+    const select = document.getElementById('offer-group');
+    select.innerHTML = '<option value="">No group</option>';
+    offerGroups.forEach(g => {
+      select.innerHTML += `<option value="${g.id}">${g.name}</option>`;
+    });
+  } catch (e) {
+    console.error('Failed to load offer groups:', e);
+  }
+}
+
+// Create App
+window.createApp = async function(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btn-create-app');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+
+  try {
+    const res = await fetch(`${API_BASE}/apps`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        bundle_id: document.getElementById('app-bundle-id').value,
+        name: document.getElementById('app-name').value || null,
+        apple_id: document.getElementById('app-apple-id').value || null,
+        mode: document.getElementById('app-mode').value,
+        group_id: document.getElementById('app-group').value || null,
+      })
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      showToast(`App "${data.name}" created!`, 'success');
+      closeModal('app');
+      await Promise.all([loadStats(), loadDropdowns()]);
+    } else {
+      showToast(data.error || 'Failed to create app', 'error');
+    }
+  } catch (e) {
+    console.error('Failed to create app:', e);
+    showToast('Failed to create app', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-plus"></i> Create App';
+  }
+}
+
+// Create Offer
+window.createOffer = async function(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btn-create-offer');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+
+  try {
+    const res = await fetch(`${API_BASE}/offers`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        name: document.getElementById('offer-name').value,
+        url: document.getElementById('offer-url').value,
+        priority: parseInt(document.getElementById('offer-priority').value) || 0,
+        weight: parseInt(document.getElementById('offer-weight').value) || 100,
+        group_id: document.getElementById('offer-group').value || null,
+      })
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      showToast(`Offer "${data.name}" created!`, 'success');
+      closeModal('offer');
+      await Promise.all([loadStats(), loadDropdowns()]);
+    } else {
+      showToast(data.error || 'Failed to create offer', 'error');
+    }
+  } catch (e) {
+    console.error('Failed to create offer:', e);
+    showToast('Failed to create offer', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-plus"></i> Create Offer';
+  }
+}
+
+// Create Geo
+window.createGeo = async function(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btn-create-geo');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+
+  try {
+    const res = await fetch(`${API_BASE}/geos`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        code: document.getElementById('geo-code').value.toUpperCase(),
+        name: document.getElementById('geo-name').value,
+        is_default: document.getElementById('geo-is-default').checked,
+      })
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      showToast(`Geo "${data.code}" created!`, 'success');
+      closeModal('geo');
+      await Promise.all([loadStats(), loadDropdowns()]);
+    } else {
+      showToast(data.error || 'Failed to create geo', 'error');
+    }
+  } catch (e) {
+    console.error('Failed to create geo:', e);
+    showToast('Failed to create geo', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-plus"></i> Create Geo';
+  }
+}
+
+// Toast notifications
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+// Load stats
+async function loadStats() {
+  try {
+    const res = await fetch(`${API_BASE}/stats`);
+    const data = await res.json();
+
+    document.getElementById('kpi-apps').textContent = data.apps.total;
+    document.getElementById('kpi-apps-meta').textContent =
+      `${data.apps.casino} casino, ${data.apps.native} native`;
+
+    document.getElementById('kpi-offers').textContent = data.offers.total;
+    document.getElementById('kpi-offers-meta').textContent =
+      `${data.offers.active} active`;
+
+    document.getElementById('kpi-geos').textContent = data.geos.total;
+
+    document.getElementById('kpi-links').textContent = data.links.active;
+    document.getElementById('kpi-links-meta').textContent =
+      `${data.links.total} total`;
+
+    document.getElementById('kpi-clients').textContent = data.clients.total;
+  } catch (e) {
+    console.error('Failed to load stats:', e);
+  }
+}
+
+// Load dropdowns
+async function loadDropdowns() {
+  try {
+    const [appsRes, offersRes, geosRes] = await Promise.all([
+      fetch(`${API_BASE}/apps`),
+      fetch(`${API_BASE}/offers`),
+      fetch(`${API_BASE}/geos`)
+    ]);
+
+    apps = await appsRes.json();
+    offers = await offersRes.json();
+    geos = await geosRes.json();
+
+    // Populate app select
+    const appSelect = document.getElementById('select-app');
+    apps.forEach(app => {
+      const opt = document.createElement('option');
+      opt.value = app.id;
+      opt.textContent = `${app.name} (${app.mode})`;
+      appSelect.appendChild(opt);
+    });
+
+    // Populate offer select
+    const offerSelect = document.getElementById('select-offer');
+    offers.forEach(offer => {
+      const opt = document.createElement('option');
+      opt.value = offer.id;
+      opt.textContent = `${offer.name} (P: ${offer.priority})`;
+      offerSelect.appendChild(opt);
+    });
+
+    // Populate geo select
+    const geoSelect = document.getElementById('select-geo');
+    geos.forEach(geo => {
+      const opt = document.createElement('option');
+      opt.value = geo.id;
+      opt.textContent = `${geo.code} - ${geo.name}${geo.is_default ? ' (Default)' : ''}`;
+      geoSelect.appendChild(opt);
+    });
+
+    // Update filter tabs
+    updateFilterTabs();
+  } catch (e) {
+    console.error('Failed to load dropdowns:', e);
+    showToast('Failed to load data', 'error');
+  }
+}
+
+// Update filter tabs
+function updateFilterTabs() {
+  const container = document.getElementById('app-filters');
+  container.innerHTML = '<button class="filter-tab active" data-app="all">All Apps</button>';
+
+  apps.forEach(app => {
+    const btn = document.createElement('button');
+    btn.className = 'filter-tab';
+    btn.dataset.app = app.id;
+    btn.textContent = app.name;
+    btn.onclick = () => filterByApp(app.id);
+    container.appendChild(btn);
+  });
+
+  container.querySelector('[data-app="all"]').onclick = () => filterByApp('all');
+}
+
+// Filter by app
+window.filterByApp = function(appId) {
+  currentAppFilter = appId;
+  document.querySelectorAll('.filter-tab').forEach(tab => {
+    tab.classList.toggle('active', tab.dataset.app == appId);
+  });
+  renderMatrix();
+}
+
+// Load matrix
+window.loadMatrix = async function() {
+  try {
+    const res = await fetch(`${API_BASE}/matrix`);
+    matrix = await res.json();
+    renderMatrix();
+  } catch (e) {
+    console.error('Failed to load matrix:', e);
+    showToast('Failed to load matrix', 'error');
+  }
+}
+
+// Render matrix table
+function renderMatrix() {
+  const tbody = document.getElementById('matrix-body');
+
+  let filtered = matrix;
+  if (currentAppFilter !== 'all') {
+    filtered = matrix.filter(row => row.app_id == currentAppFilter);
+  }
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6">
+          <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <p>No links found. Create your first link!</p>
+          </div>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(row => `
+    <tr data-id="${row.id}">
+      <td>
+        <div class="app-cell">
+          <span>${row.app_name}</span>
+          <span class="app-badge ${row.app_mode}">${row.app_mode}</span>
+        </div>
+      </td>
+      <td>
+        <span class="geo-badge ${row.geo_is_default ? 'default' : ''}">
+          ${row.geo_is_default ? '<i class="fas fa-globe"></i>' : ''}
+          ${row.geo_code}
+        </span>
+      </td>
+      <td class="offer-cell">${row.offer_name}</td>
+      <td>
+        ${row.priority !== null ? `<span class="priority-badge">Override: ${row.priority}</span>` : ''}
+        <span class="priority-badge">Base: ${row.offer_priority}</span>
+      </td>
+      <td>
+        <div class="status-toggle ${row.is_active ? 'active' : ''}"
+             onclick="toggleLink(${row.id})"
+             title="${row.is_active ? 'Active' : 'Inactive'}">
+        </div>
+      </td>
+      <td>
+        <div class="actions-cell">
+          <button class="action-btn delete" onclick="deleteLink(${row.id})" title="Delete">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// Create link
+document.getElementById('create-link-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const appId = document.getElementById('select-app').value;
+  const offerId = document.getElementById('select-offer').value;
+  const geoId = document.getElementById('select-geo').value;
+  const priority = document.getElementById('input-priority').value || null;
+  const weight = document.getElementById('input-weight').value || null;
+
+  const btn = document.getElementById('btn-create');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+
+  try {
+    const res = await fetch(`${API_BASE}/links`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        app_id: parseInt(appId),
+        offer_id: parseInt(offerId),
+        geo_id: parseInt(geoId),
+        priority: priority ? parseInt(priority) : null,
+        weight: weight ? parseInt(weight) : null
+      })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      showToast('Link created successfully!', 'success');
+      document.getElementById('create-link-form').reset();
+      await Promise.all([loadStats(), loadMatrix()]);
+    } else {
+      showToast(data.error || 'Failed to create link', 'error');
+    }
+  } catch (e) {
+    console.error('Failed to create link:', e);
+    showToast('Failed to create link', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-plus"></i> Create Link';
+  }
+});
+
+// Toggle link status
+window.toggleLink = async function(id) {
+  try {
+    const res = await fetch(`${API_BASE}/links/${id}/toggle`, {method: 'POST'});
+    const data = await res.json();
+
+    if (data.success) {
+      const row = matrix.find(r => r.id === id);
+      if (row) row.is_active = data.is_active;
+      renderMatrix();
+      loadStats();
+      showToast(`Link ${data.is_active ? 'activated' : 'deactivated'}`, 'success');
+    }
+  } catch (e) {
+    console.error('Failed to toggle link:', e);
+    showToast('Failed to toggle link', 'error');
+  }
+}
+
+// Delete link
+window.deleteLink = async function(id) {
+  if (!confirm('Are you sure you want to delete this link?')) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/links/${id}`, {method: 'DELETE'});
+    const data = await res.json();
+
+    if (data.success) {
+      showToast('Link deleted', 'success');
+      matrix = matrix.filter(r => r.id !== id);
+      renderMatrix();
+      loadStats();
+    }
+  } catch (e) {
+    console.error('Failed to delete link:', e);
+    showToast('Failed to delete link', 'error');
+  }
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', async () => {
+  await Promise.all([
+    loadStats(),
+    loadDropdowns(),
+    loadMatrix()
+  ]);
+});
+</script>
+{% endblock %}

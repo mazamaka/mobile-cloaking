@@ -1,0 +1,315 @@
+"""Dashboard statistics and data API."""
+
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+
+from app.table.app.model import App
+from app.table.app.enums import AppMode
+from app.table.app_offer_geo.model import AppOfferGeo
+from app.table.geo.model import Geo
+from app.table.group.model import Group, GroupType
+from app.table.offer.model import Offer
+from app.table.client.model import Client
+
+
+async def get_dashboard_stats(session: AsyncSession) -> dict:
+    """Get statistics for dashboard."""
+    # Apps count
+    apps_total = await session.scalar(select(func.count(App.id)))
+    apps_casino = await session.scalar(
+        select(func.count(App.id)).where(App.mode == AppMode.CASINO)
+    )
+    apps_native = await session.scalar(
+        select(func.count(App.id)).where(App.mode == AppMode.NATIVE)
+    )
+
+    # Offers count
+    offers_total = await session.scalar(select(func.count(Offer.id)))
+    offers_active = await session.scalar(
+        select(func.count(Offer.id)).where(Offer.is_active == True)  # noqa: E712
+    )
+
+    # Geos count
+    geos_total = await session.scalar(select(func.count(Geo.id)))
+
+    # Links count
+    links_total = await session.scalar(select(func.count(AppOfferGeo.id)))
+    links_active = await session.scalar(
+        select(func.count(AppOfferGeo.id)).where(AppOfferGeo.is_active == True)  # noqa: E712
+    )
+
+    # Groups count
+    groups_app = await session.scalar(
+        select(func.count(Group.id)).where(Group.type == GroupType.APP)
+    )
+    groups_offer = await session.scalar(
+        select(func.count(Group.id)).where(Group.type == GroupType.OFFER)
+    )
+
+    # Clients count
+    clients_total = await session.scalar(select(func.count(Client.id)))
+
+    return {
+        "apps": {
+            "total": apps_total or 0,
+            "casino": apps_casino or 0,
+            "native": apps_native or 0,
+        },
+        "offers": {
+            "total": offers_total or 0,
+            "active": offers_active or 0,
+        },
+        "geos": {
+            "total": geos_total or 0,
+        },
+        "links": {
+            "total": links_total or 0,
+            "active": links_active or 0,
+        },
+        "groups": {
+            "app": groups_app or 0,
+            "offer": groups_offer or 0,
+        },
+        "clients": {
+            "total": clients_total or 0,
+        },
+    }
+
+
+async def get_apps_list(session: AsyncSession) -> list[dict]:
+    """Get all apps for dropdown."""
+    stmt = (
+        select(App)
+        .options(selectinload(App.group))
+        .where(App.is_active == True)  # noqa: E712
+        .order_by(App.name)
+    )
+    result = await session.execute(stmt)
+    apps = result.scalars().all()
+
+    return [
+        {
+            "id": app.id,
+            "name": app.name or app.bundle_id,
+            "bundle_id": app.bundle_id,
+            "mode": app.mode.value if hasattr(app.mode, 'value') else app.mode,
+            "group": app.group.name if app.group else None,
+        }
+        for app in apps
+    ]
+
+
+async def get_offers_list(session: AsyncSession) -> list[dict]:
+    """Get all offers for dropdown."""
+    stmt = (
+        select(Offer)
+        .options(selectinload(Offer.group))
+        .where(Offer.is_active == True)  # noqa: E712
+        .order_by(Offer.name)
+    )
+    result = await session.execute(stmt)
+    offers = result.scalars().all()
+
+    return [
+        {
+            "id": offer.id,
+            "name": offer.name,
+            "priority": offer.priority,
+            "group": offer.group.name if offer.group else None,
+        }
+        for offer in offers
+    ]
+
+
+async def get_geos_list(session: AsyncSession) -> list[dict]:
+    """Get all geos for dropdown."""
+    stmt = (
+        select(Geo)
+        .where(Geo.is_active == True)  # noqa: E712
+        .order_by(Geo.is_default.desc(), Geo.code)
+    )
+    result = await session.execute(stmt)
+    geos = result.scalars().all()
+
+    return [
+        {
+            "id": geo.id,
+            "code": geo.code,
+            "name": geo.name,
+            "is_default": geo.is_default,
+        }
+        for geo in geos
+    ]
+
+
+async def get_app_offer_geo_matrix(session: AsyncSession) -> list[dict]:
+    """Get all App-Offer-Geo links as matrix data."""
+    stmt = (
+        select(AppOfferGeo)
+        .options(
+            selectinload(AppOfferGeo.app),
+            selectinload(AppOfferGeo.offer),
+            selectinload(AppOfferGeo.geo),
+        )
+        .order_by(AppOfferGeo.app_id, AppOfferGeo.geo_id)
+    )
+    result = await session.execute(stmt)
+    links = result.scalars().all()
+
+    return [
+        {
+            "id": link.id,
+            "app_id": link.app_id,
+            "app_name": link.app.name or link.app.bundle_id if link.app else None,
+            "app_mode": link.app.mode.value if link.app and hasattr(link.app.mode, 'value') else (link.app.mode if link.app else None),
+            "offer_id": link.offer_id,
+            "offer_name": link.offer.name if link.offer else None,
+            "offer_priority": link.offer.priority if link.offer else None,
+            "geo_id": link.geo_id,
+            "geo_code": link.geo.code if link.geo else None,
+            "geo_name": link.geo.name if link.geo else None,
+            "geo_is_default": link.geo.is_default if link.geo else False,
+            "priority": link.priority,
+            "weight": link.weight,
+            "is_active": link.is_active,
+        }
+        for link in links
+    ]
+
+
+async def create_app_offer_geo_link(
+    session: AsyncSession,
+    app_id: int,
+    offer_id: int,
+    geo_id: int,
+    priority: int | None = None,
+    weight: int | None = None,
+) -> dict:
+    """Create a new App-Offer-Geo link."""
+    link = AppOfferGeo(
+        app_id=app_id,
+        offer_id=offer_id,
+        geo_id=geo_id,
+        priority=priority,
+        weight=weight,
+        is_active=True,
+    )
+    session.add(link)
+    await session.flush()
+    return {"id": link.id, "success": True}
+
+
+async def delete_app_offer_geo_link(session: AsyncSession, link_id: int) -> dict:
+    """Delete an App-Offer-Geo link."""
+    stmt = select(AppOfferGeo).where(AppOfferGeo.id == link_id)
+    result = await session.execute(stmt)
+    link = result.scalar_one_or_none()
+
+    if link:
+        await session.delete(link)
+        return {"success": True}
+    return {"success": False, "error": "Link not found"}
+
+
+async def toggle_app_offer_geo_link(session: AsyncSession, link_id: int) -> dict:
+    """Toggle is_active status of an App-Offer-Geo link."""
+    stmt = select(AppOfferGeo).where(AppOfferGeo.id == link_id)
+    result = await session.execute(stmt)
+    link = result.scalar_one_or_none()
+
+    if link:
+        link.is_active = not link.is_active
+        return {"success": True, "is_active": link.is_active}
+    return {"success": False, "error": "Link not found"}
+
+
+async def get_groups_list(session: AsyncSession, group_type: GroupType | None = None) -> list[dict]:
+    """Get groups for dropdown."""
+    stmt = select(Group).where(Group.is_active == True)  # noqa: E712
+    if group_type:
+        stmt = stmt.where(Group.type == group_type)
+    stmt = stmt.order_by(Group.name)
+
+    result = await session.execute(stmt)
+    groups = result.scalars().all()
+
+    return [
+        {
+            "id": group.id,
+            "name": group.name,
+            "type": group.type.value if hasattr(group.type, 'value') else group.type,
+        }
+        for group in groups
+    ]
+
+
+async def create_app(
+    session: AsyncSession,
+    bundle_id: str,
+    name: str | None = None,
+    apple_id: str | None = None,
+    mode: str = "native",
+    group_id: int | None = None,
+) -> dict:
+    """Create a new App."""
+    # Check if bundle_id already exists
+    stmt = select(App).where(App.bundle_id == bundle_id)
+    result = await session.execute(stmt)
+    if result.scalar_one_or_none():
+        return {"success": False, "error": "Bundle ID already exists"}
+
+    app = App(
+        bundle_id=bundle_id,
+        name=name or bundle_id,
+        apple_id=apple_id,
+        mode=AppMode(mode),
+        group_id=group_id,
+    )
+    session.add(app)
+    await session.flush()
+    return {"success": True, "id": app.id, "name": app.name}
+
+
+async def create_offer(
+    session: AsyncSession,
+    name: str,
+    url: str,
+    priority: int = 0,
+    weight: int = 100,
+    group_id: int | None = None,
+) -> dict:
+    """Create a new Offer."""
+    offer = Offer(
+        name=name,
+        url=url,
+        priority=priority,
+        weight=weight,
+        group_id=group_id,
+    )
+    session.add(offer)
+    await session.flush()
+    return {"success": True, "id": offer.id, "name": offer.name}
+
+
+async def create_geo(
+    session: AsyncSession,
+    code: str,
+    name: str,
+    is_default: bool = False,
+) -> dict:
+    """Create a new Geo."""
+    # Check if code already exists
+    stmt = select(Geo).where(Geo.code == code)
+    result = await session.execute(stmt)
+    if result.scalar_one_or_none():
+        return {"success": False, "error": "Geo code already exists"}
+
+    geo = Geo(
+        code=code.upper(),
+        name=name,
+        is_default=is_default,
+    )
+    session.add(geo)
+    await session.flush()
+    return {"success": True, "id": geo.id, "code": geo.code}

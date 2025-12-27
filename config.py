@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     # Database
     postgres_host: str = "db"
     postgres_port: int = 5432
+    postgres_external_port: int = 5440
     postgres_user: str = "postgres"
     postgres_password: str = "postgres"
     postgres_db: str = "cloaking"
@@ -45,17 +46,22 @@ class Settings(BaseSettings):
         return self.postgres_host if IS_DOCKER else "127.0.0.1"
 
     @property
+    def effective_port(self) -> int:
+        """В Docker — внутренний порт, локально — внешний (mapped) порт."""
+        return self.postgres_port if IS_DOCKER else self.postgres_external_port
+
+    @property
     def database_url(self) -> str:
         return (
             f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}"
-            f"@{self.effective_host}:{self.postgres_port}/{self.postgres_db}"
+            f"@{self.effective_host}:{self.effective_port}/{self.postgres_db}"
         )
 
     @property
     def database_url_sync(self) -> str:
         return (
             f"postgresql://{self.postgres_user}:{self.postgres_password}"
-            f"@{self.effective_host}:{self.postgres_port}/{self.postgres_db}"
+            f"@{self.effective_host}:{self.effective_port}/{self.postgres_db}"
         )
 
 

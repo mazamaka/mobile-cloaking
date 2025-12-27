@@ -1,6 +1,10 @@
 from datetime import datetime
+from typing import TYPE_CHECKING
 
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
+
+if TYPE_CHECKING:
+    from app.table.app_offer_geo.model import AppOfferGeo
 
 
 class Geo(SQLModel, table=True):
@@ -14,7 +18,7 @@ class Geo(SQLModel, table=True):
     code: str = Field(unique=True, index=True, max_length=10)
 
     # Human-readable name
-    name: str  # "Estonia", "Hungary", "Poland"
+    name: str
 
     # Is this a default/fallback geo (matches any country)
     is_default: bool = Field(default=False, index=True)
@@ -25,3 +29,9 @@ class Geo(SQLModel, table=True):
     # Timestamps
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+    # Relationships
+    app_offer_geos: list["AppOfferGeo"] = Relationship(back_populates="geo")
+
+    def __admin_repr__(self, request) -> str:
+        return f"{self.code} ({self.name})"

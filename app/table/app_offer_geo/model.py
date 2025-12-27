@@ -1,0 +1,52 @@
+from datetime import datetime
+from typing import TYPE_CHECKING, Optional
+
+from sqlalchemy import UniqueConstraint
+from sqlmodel import Field, Relationship, SQLModel
+
+if TYPE_CHECKING:
+    from app.table.app.model import App
+    from app.table.geo.model import Geo
+    from app.table.offer.model import Offer
+
+
+class AppOfferGeo(SQLModel, table=True):
+    """Triple link: App + Offer + Geo.
+
+    CONSTRAINT: В рамках одного App каждый Geo может быть привязан
+    только к одному Offer. Это гарантируется UNIQUE(app_id, geo_id).
+    """
+
+    __tablename__ = "app_offer_geo"
+    __table_args__ = (
+        UniqueConstraint("app_id", "geo_id", name="uq_app_offer_geo_app_geo"),
+    )
+
+    id: int | None = Field(default=None, primary_key=True)
+
+    # App relation
+    app_id: int = Field(foreign_key="apps.id", index=True)
+    app: Optional["App"] = Relationship(back_populates="app_offer_geos")
+
+    # Offer relation
+    offer_id: int = Field(foreign_key="offers.id", index=True)
+    offer: Optional["Offer"] = Relationship(back_populates="app_offer_geos")
+
+    # Geo relation
+    geo_id: int = Field(foreign_key="geos.id", index=True)
+    geo: Optional["Geo"] = Relationship(back_populates="app_offer_geos")
+
+    # Override priority/weight per app-offer-geo (nullable = use offer defaults)
+    priority: int | None = Field(default=None)
+    weight: int | None = Field(default=None)
+
+    # Status
+    is_active: bool = Field(default=True, index=True)
+
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    def __admin_repr__(self, request) -> str:
+        app_name = getattr(self.app, 'name', None) or f"App #{self.app_id}"
+        offer_name = getattr(self.offer, 'name', None) or f"Offer #{self.offer_id}"
+        geo_code = getattr(self.geo, 'code', None) or f"Geo #{self.geo_id}"
+        return f"{app_name} | {offer_name} | {geo_code}"
