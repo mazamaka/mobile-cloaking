@@ -10,7 +10,6 @@ class EventView(ModelView):
 
     name = "Event"
     name_plural = "Events"
-    icon = "fas fa-chart-line"
 
     fields = [
         IntegerField("id", label="ID", help_text="Уникальный идентификатор события"),
@@ -41,4 +40,4 @@ class EventView(ModelView):
         return False
 
 
-event_view = EventView(Event)
+event_view = EventView(Event, icon="fas fa-calendar-check")

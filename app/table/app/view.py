@@ -10,7 +10,6 @@ class AppView(ModelView):
 
     name = "App"
     name_plural = "Apps"
-    icon = "fas fa-mobile-alt"
 
     fields = [
         IntegerField("id", label="ID", help_text="Уникальный идентификатор приложения"),
@@ -39,4 +38,4 @@ class AppView(ModelView):
     sortable_fields = ["id", "bundle_id", "name", "mode", "is_active", "created_at"]
 
 
-app_view = AppView(App)
+app_view = AppView(App, icon="fas fa-mobile-alt")

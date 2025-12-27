@@ -12,7 +12,6 @@ class OfferView(ModelView):
 
     name = "Offer"
     name_plural = "Offers"
-    icon = "fas fa-gift"
 
     fields = [
         IntegerField("id", label="ID", help_text="Уникальный идентификатор оффера"),
@@ -35,4 +34,4 @@ class OfferView(ModelView):
     sortable_fields = ["id", "name", "priority", "is_active"]
 
 
-offer_view = OfferView(Offer)
+offer_view = OfferView(Offer, icon="fas fa-gift")

@@ -10,7 +10,6 @@ class InitLogView(ModelView):
 
     name = "Init Log"
     name_plural = "Init Logs"
-    icon = "fas fa-history"
 
     fields = [
         IntegerField("id", label="ID", help_text="Уникальный идентификатор лога"),
@@ -38,4 +37,4 @@ class InitLogView(ModelView):
         return False
 
 
-init_log_view = InitLogView(InitLog)
+init_log_view = InitLogView(InitLog, icon="fas fa-history")

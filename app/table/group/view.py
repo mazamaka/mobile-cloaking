@@ -9,7 +9,6 @@ class GroupView(ModelView):
 
     name = "Group"
     name_plural = "Groups"
-    icon = "fas fa-layer-group"
 
     fields = [
         IntegerField("id", label="ID", help_text="Уникальный идентификатор группы"),
@@ -29,4 +28,4 @@ class GroupView(ModelView):
     sortable_fields = ["id", "name", "type", "is_active"]
 
 
-group_view = GroupView(Group)
+group_view = GroupView(Group, icon="fas fa-layer-group")

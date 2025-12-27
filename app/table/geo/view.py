@@ -9,7 +9,6 @@ class GeoView(ModelView):
 
     name = "Geo"
     name_plural = "Geos"
-    icon = "fas fa-globe"
 
     fields = [
         IntegerField("id", label="ID", help_text="Уникальный идентификатор региона"),
@@ -29,4 +28,4 @@ class GeoView(ModelView):
     sortable_fields = ["id", "code", "name", "is_default", "is_active"]
 
 
-geo_view = GeoView(Geo)
+geo_view = GeoView(Geo, icon="fas fa-globe")

@@ -11,7 +11,6 @@ class ClientView(ModelView):
 
     name = "Client"
     name_plural = "Clients"
-    icon = "fas fa-users"
 
     fields = [
         IntegerField("id", label="ID", help_text="Уникальный идентификатор клиента в БД"),
@@ -47,4 +46,4 @@ class ClientView(ModelView):
         return False
 
 
-client_view = ClientView(Client)
+client_view = ClientView(Client, icon="fas fa-users")

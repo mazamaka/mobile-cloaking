@@ -14,7 +14,6 @@ class AppOfferGeoView(ModelView):
 
     name = "App-Offer-Geo"
     name_plural = "App-Offer-Geo Links"
-    icon = "fas fa-project-diagram"
 
     fields = [
         IntegerField("id", label="ID", help_text="Уникальный идентификатор связки"),
@@ -90,4 +89,4 @@ class AppOfferGeoView(ModelView):
             await self._validate_geo_uniqueness(request, app_id, geo_id, exclude_id=obj.id)
 
 
-app_offer_geo_view = AppOfferGeoView(AppOfferGeo)
+app_offer_geo_view = AppOfferGeoView(AppOfferGeo, icon="fas fa-project-diagram")
