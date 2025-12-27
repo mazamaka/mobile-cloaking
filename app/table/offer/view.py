@@ -42,9 +42,10 @@ class OfferView(ModelView):
         from app.table.app_offer_geo.model import AppOfferGeo
 
         session = request.state.session
-        count = session.scalar(
+        result = await session.execute(
             select(func.count(AppOfferGeo.id)).where(AppOfferGeo.offer_id == obj.id)
-        ) or 0
+        )
+        count = result.scalar() or 0
 
         if count > 0:
             raise ActionFailed(f"Cannot delete '{obj.name}': has {count} app-geo link(s)")

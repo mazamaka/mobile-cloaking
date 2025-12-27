@@ -49,9 +49,10 @@ class AppView(ModelView):
         session = request.state.session
 
         # Check clients
-        clients_count = session.scalar(
+        result = await session.execute(
             select(func.count(Client.id)).where(Client.app_id == obj.id)
-        ) or 0
+        )
+        clients_count = result.scalar() or 0
 
         if clients_count > 0:
             raise ActionFailed(
@@ -60,9 +61,10 @@ class AppView(ModelView):
             )
 
         # Check app-offer-geo links
-        links_count = session.scalar(
+        result = await session.execute(
             select(func.count(AppOfferGeo.id)).where(AppOfferGeo.app_id == obj.id)
-        ) or 0
+        )
+        links_count = result.scalar() or 0
 
         if links_count > 0:
             raise ActionFailed(
