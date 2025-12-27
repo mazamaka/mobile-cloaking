@@ -43,30 +43,31 @@ class AppOfferGeoView(ModelView):
         from app.table.app.model import App
         from app.table.geo.model import Geo
 
-        async with request.state.session as session:
-            # Verify app exists
-            app = await session.get(App, app_id)
-            if not app:
-                raise FormValidationError({"app": "App not found"})
+        session = request.state.session
 
-            # Check if geo already assigned in this app
-            stmt = select(AppOfferGeo).where(
-                AppOfferGeo.app_id == app_id,
-                AppOfferGeo.geo_id == geo_id,
+        # Verify app exists
+        app = await session.get(App, app_id)
+        if not app:
+            raise FormValidationError({"app": "App not found"})
+
+        # Check if geo already assigned in this app
+        stmt = select(AppOfferGeo).where(
+            AppOfferGeo.app_id == app_id,
+            AppOfferGeo.geo_id == geo_id,
+        )
+
+        if exclude_id:
+            stmt = stmt.where(AppOfferGeo.id != exclude_id)
+
+        result = await session.execute(stmt)
+        existing = result.scalar_one_or_none()
+
+        if existing:
+            geo = await session.get(Geo, geo_id)
+            geo_code = geo.code if geo else str(geo_id)
+            raise FormValidationError(
+                {"geo": f"Geo '{geo_code}' already assigned to another offer in this app"}
             )
-
-            if exclude_id:
-                stmt = stmt.where(AppOfferGeo.id != exclude_id)
-
-            result = await session.execute(stmt)
-            existing = result.scalar_one_or_none()
-
-            if existing:
-                geo = await session.get(Geo, geo_id)
-                geo_code = geo.code if geo else str(geo_id)
-                raise FormValidationError(
-                    {"geo": f"Geo '{geo_code}' already assigned to another offer in this app"}
-                )
 
     async def before_create(
         self, request: Request, data: dict, obj: AppOfferGeo

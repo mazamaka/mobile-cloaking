@@ -46,30 +46,31 @@ class AppView(ModelView):
         from app.table.app_offer_geo.model import AppOfferGeo
         from app.table.client.model import Client
 
-        async with request.state.session as session:
-            # Check clients
-            stmt = select(func.count(Client.id)).where(Client.app_id == obj.id)
-            result = await session.execute(stmt)
-            clients_count = result.scalar() or 0
+        session = request.state.session
 
-            if clients_count > 0:
-                raise ActionFailed(
-                    f"Cannot delete app '{obj.name or obj.bundle_id}': "
-                    f"it has {clients_count} associated client(s). "
-                    f"Delete clients first or deactivate the app."
-                )
+        # Check clients
+        stmt = select(func.count(Client.id)).where(Client.app_id == obj.id)
+        result = await session.execute(stmt)
+        clients_count = result.scalar() or 0
 
-            # Check app-offer-geo links
-            stmt = select(func.count(AppOfferGeo.id)).where(AppOfferGeo.app_id == obj.id)
-            result = await session.execute(stmt)
-            links_count = result.scalar() or 0
+        if clients_count > 0:
+            raise ActionFailed(
+                f"Cannot delete app '{obj.name or obj.bundle_id}': "
+                f"it has {clients_count} associated client(s). "
+                f"Delete clients first or deactivate the app."
+            )
 
-            if links_count > 0:
-                raise ActionFailed(
-                    f"Cannot delete app '{obj.name or obj.bundle_id}': "
-                    f"it has {links_count} offer-geo link(s). "
-                    f"Delete the links first or deactivate the app."
-                )
+        # Check app-offer-geo links
+        stmt = select(func.count(AppOfferGeo.id)).where(AppOfferGeo.app_id == obj.id)
+        result = await session.execute(stmt)
+        links_count = result.scalar() or 0
+
+        if links_count > 0:
+            raise ActionFailed(
+                f"Cannot delete app '{obj.name or obj.bundle_id}': "
+                f"it has {links_count} offer-geo link(s). "
+                f"Delete the links first or deactivate the app."
+            )
 
 
 app_view = AppView(App, icon="fas fa-mobile-alt")

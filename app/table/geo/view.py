@@ -35,17 +35,17 @@ class GeoView(ModelView):
 
         from app.table.app_offer_geo.model import AppOfferGeo
 
-        async with request.state.session as session:
-            stmt = select(func.count(AppOfferGeo.id)).where(AppOfferGeo.geo_id == obj.id)
-            result = await session.execute(stmt)
-            count = result.scalar() or 0
+        session = request.state.session
+        stmt = select(func.count(AppOfferGeo.id)).where(AppOfferGeo.geo_id == obj.id)
+        result = await session.execute(stmt)
+        count = result.scalar() or 0
 
-            if count > 0:
-                raise ActionFailed(
-                    f"Cannot delete geo '{obj.code}': "
-                    f"it has {count} app-offer link(s). "
-                    f"Delete the links first or deactivate the geo."
-                )
+        if count > 0:
+            raise ActionFailed(
+                f"Cannot delete geo '{obj.code}': "
+                f"it has {count} app-offer link(s). "
+                f"Delete the links first or deactivate the geo."
+            )
 
 
 geo_view = GeoView(Geo, icon="fas fa-globe")
