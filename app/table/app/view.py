@@ -49,27 +49,25 @@ class AppView(ModelView):
         session = request.state.session
 
         # Check clients
-        stmt = select(func.count(Client.id)).where(Client.app_id == obj.id)
-        result = await session.execute(stmt)
-        clients_count = result.scalar() or 0
+        clients_count = session.scalar(
+            select(func.count(Client.id)).where(Client.app_id == obj.id)
+        ) or 0
 
         if clients_count > 0:
             raise ActionFailed(
-                f"Cannot delete app '{obj.name or obj.bundle_id}': "
-                f"it has {clients_count} associated client(s). "
-                f"Delete clients first or deactivate the app."
+                f"Cannot delete '{obj.name or obj.bundle_id}': "
+                f"has {clients_count} client(s)"
             )
 
         # Check app-offer-geo links
-        stmt = select(func.count(AppOfferGeo.id)).where(AppOfferGeo.app_id == obj.id)
-        result = await session.execute(stmt)
-        links_count = result.scalar() or 0
+        links_count = session.scalar(
+            select(func.count(AppOfferGeo.id)).where(AppOfferGeo.app_id == obj.id)
+        ) or 0
 
         if links_count > 0:
             raise ActionFailed(
-                f"Cannot delete app '{obj.name or obj.bundle_id}': "
-                f"it has {links_count} offer-geo link(s). "
-                f"Delete the links first or deactivate the app."
+                f"Cannot delete '{obj.name or obj.bundle_id}': "
+                f"has {links_count} offer-geo link(s)"
             )
 
 

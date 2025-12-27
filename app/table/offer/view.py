@@ -42,16 +42,12 @@ class OfferView(ModelView):
         from app.table.app_offer_geo.model import AppOfferGeo
 
         session = request.state.session
-        stmt = select(func.count(AppOfferGeo.id)).where(AppOfferGeo.offer_id == obj.id)
-        result = await session.execute(stmt)
-        count = result.scalar() or 0
+        count = session.scalar(
+            select(func.count(AppOfferGeo.id)).where(AppOfferGeo.offer_id == obj.id)
+        ) or 0
 
         if count > 0:
-            raise ActionFailed(
-                f"Cannot delete offer '{obj.name}': "
-                f"it has {count} app-geo link(s). "
-                f"Delete the links first or deactivate the offer."
-            )
+            raise ActionFailed(f"Cannot delete '{obj.name}': has {count} app-geo link(s)")
 
 
 offer_view = OfferView(Offer, icon="fas fa-gift")
