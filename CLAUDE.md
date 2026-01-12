@@ -6,10 +6,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Backend для iOS-приложений с механизмом "клоаки" (cloaking) для гемблинг-вертикали.
 
-**Ключевая бизнес-логика:**
-- `App.mode == NATIVE` + любой запрос → `200 OK` (для модераторов Apple)
-- `App.mode == CASINO` + найден оффер → `400 Bad Request` с URL казино
-- `App.mode == CASINO` + оффер не найден → `200 OK` (fallback на native)
+**Ключевая бизнес-логика (всегда 200 OK):**
+- `App.mode == NATIVE` → `result: null` (нативный режим)
+- `App.mode == CASINO` + найден оффер → `result: "url"` (открыть WebView)
+- `App.mode == CASINO` + оффер не найден → `result: null` (fallback на native)
+
+Режим определяется клиентом по наличию поля `result` в ответе.
 
 **GEO-таргетинг:** Офферы привязаны к регионам. Поиск оффера: точное совпадение `geo.code` → fallback на `geo.is_default=true` → null.
 
@@ -75,14 +77,14 @@ app/
 
 **Ключевые классы:**
 - `InitService.process_init()` — точка входа обработки `/client/init`
-- `DecisionEngine.decide()` — логика выбора ответа (200/400)
+- `DecisionEngine.decide()` — логика выбора ответа (result=url или null)
 - `InitService.get_offer_for_geo()` — поиск оффера по региону
 
 ## API Endpoints
 
 | Метод | Endpoint | Назначение |
 |-------|----------|------------|
-| POST | `/api/v1/client/init` | Инициализация клиента (200=native, 400=casino) |
+| POST | `/api/v1/client/init` | Инициализация клиента (result=null → native, result=url → casino) |
 | POST | `/api/v1/client/event` | Логирование событий |
 | GET | `/health`, `/ready` | Health checks |
 

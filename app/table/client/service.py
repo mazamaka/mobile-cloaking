@@ -9,8 +9,7 @@ from app.table.client.model import Client
 from app.table.link.model import Link
 from app.table.client.schemas import (
     InitRequest,
-    InitResponseCasino,
-    InitResponseNative,
+    InitResponse,
     PromptsConfig,
     UpdateConfig,
 )
@@ -139,10 +138,8 @@ class InitService:
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def process_init(
-        self, data: InitRequest
-    ) -> tuple[int, InitResponseNative | InitResponseCasino]:
-        """Process init request and return (status_code, response)."""
+    async def process_init(self, data: InitRequest) -> InitResponse:
+        """Process init request and return response."""
         app = await self.get_or_create_app(data.app.bundle_id)
         client, is_new = await self.get_or_create_client(app, data)
 
@@ -152,25 +149,24 @@ class InitService:
             offer = await self.get_offer_for_geo(app.id, data.device.region)
 
         # Build response
-        status_code, response = DecisionEngine.decide(app, offer)
+        response = DecisionEngine.decide(app, offer)
 
         logger.info(
             f"Init: app={app.bundle_id}, client={client.internal_id}, "
             f"mode={app.mode}, geo={data.device.region}, "
-            f"offer={offer.name if offer else None}, status={status_code}, new={is_new}"
+            f"offer={offer.name if offer else None}, "
+            f"casino={'yes' if response.result else 'no'}, new={is_new}"
         )
 
-        return status_code, response
+        return response
 
 
 class DecisionEngine:
     """Decides response based on app mode and offer."""
 
     @staticmethod
-    def decide(
-        app: App, offer: Offer | None = None
-    ) -> tuple[int, InitResponseNative | InitResponseCasino]:
-        """Return (status_code, response_body)."""
+    def decide(app: App, offer: Offer | None = None) -> InitResponse:
+        """Build response. If result is set — casino mode, otherwise native."""
         prompts = PromptsConfig(
             rate_delay_sec=app.rate_delay_sec,
             push_delay_sec=app.push_delay_sec,
@@ -185,16 +181,9 @@ class DecisionEngine:
                 appstore_url=app.appstore_url,
             )
 
-        # Casino mode with valid offer
-        if app.mode == AppMode.CASINO and offer:
-            return 400, InitResponseCasino(
-                result=offer.url,
-                prompts=prompts,
-                update=update,
-            )
-
-        # Native mode (or no offer found)
-        return 200, InitResponseNative(
+        # result=URL means casino, result=None means native
+        return InitResponse(
+            result=offer.url if (app.mode == AppMode.CASINO and offer) else None,
             prompts=prompts,
             update=update,
         )

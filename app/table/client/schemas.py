@@ -170,33 +170,18 @@ class UpdateConfig(BaseModel):
     )
 
 
-class InitResponseNative(BaseModel):
+class InitResponse(BaseModel):
     """
-    Ответ 200 OK — Native режим.
+    Ответ 200 OK на /client/init.
 
-    Приложение показывает нативный контент (игру/приложение).
+    Режим определяется по наличию поля `result`:
+    - `result` есть → Casino режим (открыть WebView с URL)
+    - `result` отсутствует → Native режим (показать нативный контент)
     """
 
-    prompts: PromptsConfig = Field(
-        ...,
-        description="Настройки задержек для всплывающих окон",
-    )
-    update: UpdateConfig | None = Field(
+    result: str | None = Field(
         default=None,
-        description="Информация об обновлении (если есть)",
-    )
-
-
-class InitResponseCasino(BaseModel):
-    """
-    Ответ 400 Bad Request — Casino режим.
-
-    Приложение открывает WebView с URL казино.
-    """
-
-    result: str = Field(
-        ...,
-        description="URL казино для открытия в WebView",
+        description="URL казино для открытия в WebView. Если null — показать нативный контент.",
         examples=["https://casino-partner.com/?click_id=abc123&sub1=value"],
     )
     prompts: PromptsConfig = Field(
@@ -207,3 +192,8 @@ class InitResponseCasino(BaseModel):
         default=None,
         description="Информация об обновлении (если есть)",
     )
+
+
+# Алиасы для обратной совместимости (deprecated)
+InitResponseNative = InitResponse
+InitResponseCasino = InitResponse

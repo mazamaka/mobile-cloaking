@@ -75,6 +75,11 @@ venv.bak/
 *.sqlite
 *.db
 
+# Environment files with secrets
+.env
+stack.env
+!stack.env.example
+
 # Alembic
 migrations/versions/*.pyc
 

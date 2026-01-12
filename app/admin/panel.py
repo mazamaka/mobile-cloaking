@@ -22,16 +22,16 @@ from app.table.offer.model import Offer  # noqa: F401
 # Path to custom templates
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 
-
-from app.table.app.view import app_view
-from app.table.client.view import client_view
-from app.table.event.view import event_view
-from app.table.geo.view import geo_view
-from app.table.group.view import group_view
-from app.table.init_log.view import init_log_view
-from app.table.link.view import link_view
-from app.table.offer.view import offer_view
-from config import SETTINGS
+# Views imported AFTER models to ensure relationships are resolved
+from app.table.app.view import app_view  # noqa: E402
+from app.table.client.view import client_view  # noqa: E402
+from app.table.event.view import event_view  # noqa: E402
+from app.table.geo.view import geo_view  # noqa: E402
+from app.table.group.view import group_view  # noqa: E402
+from app.table.init_log.view import init_log_view  # noqa: E402
+from app.table.link.view import link_view  # noqa: E402
+from app.table.offer.view import offer_view  # noqa: E402
+from config import SETTINGS  # noqa: E402
 
 
 def create_admin() -> Admin:
@@ -53,7 +53,13 @@ def create_admin() -> Admin:
         ),
         auth_provider=CustomAuthProvider(),
         middlewares=[
-            Middleware(SessionMiddleware, secret_key=SETTINGS.auth_secret),
+            Middleware(
+                SessionMiddleware,
+                secret_key=SETTINGS.auth_secret,
+                max_age=3600,  # 1 hour session lifetime
+                same_site="lax",  # CSRF protection
+                https_only=not SETTINGS.debug,  # Secure cookie in production
+            ),
         ],
     )
 

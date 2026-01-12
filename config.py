@@ -32,10 +32,10 @@ class Settings(BaseSettings):
     workers: int = 4
     port: int = 8000
 
-    # Admin
-    admin_login: str = "admin"
-    admin_password: str = "admin"
-    auth_secret: str = "change-me-in-production"
+    # Admin (required in production - no defaults)
+    admin_login: str
+    admin_password: str
+    auth_secret: str  # Must be at least 32 chars in production
 
     # Defaults for apps
     default_rate_delay_sec: int = 180
