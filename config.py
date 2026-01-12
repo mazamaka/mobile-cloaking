@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     admin_password: str
     auth_secret: str  # Must be at least 32 chars in production
 
+    # Proxy settings
+    trusted_hosts: str = "*"  # Comma-separated list or "*" for all
+
     # Defaults for apps
     default_rate_delay_sec: int = 180
     default_push_delay_sec: int = 60
