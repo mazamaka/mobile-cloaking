@@ -1,71 +1,75 @@
 # Mobile Cloaking API
 
-Backend для iOS-приложений с механизмом cloaking для гемблинг-вертикали.
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## Описание
+Backend for iOS applications with cloaking mechanism for gambling vertical.
 
-Сервис определяет режим работы мобильного приложения:
-- **Native mode (200)** - показываем легальное приложение/игру (для модераторов Apple)
-- **Casino mode (400)** - открываем WebView с казино (для реальных пользователей)
+## Description
 
-### GEO-таргетинг
+Service determines mobile application operating mode:
+- **Native mode (200)** - show legal application/game (for Apple moderators)
+- **Casino mode (400)** - open WebView with casino (for real users)
 
-Система автоматически подбирает оффер по региону пользователя:
-1. Юзер приходит с `region="EE"` (Эстония)
-2. Ищем оффер для этого GEO
-3. Если не найден → используем default оффер
-4. Возвращаем URL казино для этого региона
+### GEO Targeting
 
-## Быстрый старт
+System automatically selects offer by user region:
+1. User comes with `region="EE"` (Estonia)
+2. Search for offer for this GEO
+3. If not found → use default offer
+4. Return casino URL for this region
 
-### Docker Compose (рекомендуется)
+## Quick Start
+
+### Docker Compose (recommended)
 
 ```bash
-# Копируем конфиг
+# Copy config
 cp stack.env.example stack.env
 
-# Запускаем
+# Run
 docker compose up -d
 
-# Проверяем
+# Check health
 curl http://localhost:8100/health
 ```
 
-### Локальная разработка
+### Local Development
 
 ```bash
-# Виртуальное окружение
+# Virtual environment
 python3 -m venv venv
 source venv/bin/activate
 
-# Зависимости
+# Install dependencies
 pip install -r requirements.txt
 
 # PostgreSQL
 docker compose up -d db
 
-# Миграции
+# Migrations
 alembic upgrade head
 
-# Сервер
+# Server
 uvicorn app.main:app --reload --port 8000
 ```
 
-## Доступы
+## Default Ports
 
-| Сервис | URL | Логин / Пароль |
-|--------|-----|----------------|
-| API Docs | http://localhost:8100/docs | - |
-| Admin Panel | http://localhost:8100/admin | mazamaka / Zxcvbn321 |
-| Adminer (DB) | http://localhost:8180 | postgres / postgres |
+| Service | Port | Access |
+|---------|------|--------|
+| API/Admin | 8100 | http://localhost:8100 |
+| PostgreSQL | 5440 | localhost:5440 |
+| Adminer | 8180 | http://localhost:8180 |
 
 ## API Endpoints
 
 ### POST /api/v1/client/init
 
-Инициализация клиента:
+Client initialization:
 - `200 OK` - native mode
-- `400 Bad Request` - casino mode (с полем `result` содержащим URL оффера)
+- `400 Bad Request` - casino mode (with `result` field containing offer URL)
 
 ```bash
 curl -X POST http://localhost:8100/api/v1/client/init \
@@ -73,7 +77,7 @@ curl -X POST http://localhost:8100/api/v1/client/init \
   -H "X-Schema: 1" \
   -d '{
     "schema": 1,
-    "app": {"bundle_id": "com.test.app", "version": "1.0"},
+    "app": {"bundle_id": "com.example.app", "version": "1.0"},
     "device": {"language": "en", "timezone": "Europe/Budapest", "region": "HU"},
     "privacy": {"att": "notDetermined"},
     "ids": {"internal_id": "550e8400-e29b-41d4-a716-446655440000"}
@@ -82,7 +86,7 @@ curl -X POST http://localhost:8100/api/v1/client/init \
 
 ### POST /api/v1/client/event
 
-Логирование событий:
+Event logging:
 
 ```bash
 curl -X POST http://localhost:8100/api/v1/client/event \
@@ -90,13 +94,13 @@ curl -X POST http://localhost:8100/api/v1/client/event \
   -H "X-Schema: 1" \
   -d '{
     "schema": 1,
-    "app": {"bundle_id": "com.test.app", "version": "1.0"},
+    "app": {"bundle_id": "com.example.app", "version": "1.0"},
     "ids": {"internal_id": "550e8400-e29b-41d4-a716-446655440000"},
     "event": {"name": "rate_sheet_shown", "ts": 1734541234, "props": null}
   }'
 ```
 
-## Структура проекта
+## Project Structure
 
 ```
 mobile-cloaking/
@@ -121,20 +125,20 @@ mobile-cloaking/
 └── requirements.txt
 ```
 
-## База данных
+## Database
 
-### Основные таблицы
+### Tables
 
-| Таблица | Описание |
-|---------|----------|
-| `apps` | Приложения (bundle_id, mode, настройки) |
-| `geos` | Регионы/страны (ISO коды: EE, HU, PL) |
-| `offers` | Офферы казино (URL привязан к App + Geo) |
-| `clients` | Устройства пользователей |
-| `events` | Аналитические события |
-| `init_logs` | Логи инициализаций |
+| Table | Description |
+|-------|-------------|
+| `apps` | Applications (bundle_id, mode, settings) |
+| `geos` | Regions/countries (ISO codes: EE, HU, PL) |
+| `offers` | Casino offers (URL linked to App + Geo) |
+| `clients` | User devices |
+| `events` | Analytic events |
+| `init_logs` | Initialization request logs |
 
-### Диаграмма выбора оффера
+### Offer Selection Flow
 
 ```
            ┌─────────────────────────────────────┐
@@ -151,20 +155,20 @@ mobile-cloaking/
               │ YES                     │ NO
               ▼                         ▼
     ┌─────────────────────┐    ┌─────────────────────┐
-    │ Поиск Offer:        │    │ Return 200          │
+    │ Search Offer:       │    │ Return 200          │
     │ app_id + geo="EE"   │    │ Native mode         │
     └─────────┬───────────┘    └─────────────────────┘
               │
               ▼
     ┌─────────────────────┐
-    │ Найден?             │
+    │ Found?              │
     └─────────┬───────────┘
               │
      ┌────────┴────────┐
      │ YES             │ NO
      ▼                 ▼
 ┌──────────┐   ┌─────────────────────┐
-│ 400      │   │ Поиск default Offer │
+│ 400      │   │ Search default      │
 │ + URL    │   │ geo.is_default=true │
 └──────────┘   └─────────┬───────────┘
                          │
@@ -177,7 +181,9 @@ mobile-cloaking/
           └──────────┘     └──────────┘
 ```
 
-## Конфигурация
+## Configuration
+
+Environment variables in `stack.env`:
 
 ```env
 # Database
@@ -185,7 +191,7 @@ POSTGRES_HOST=db
 POSTGRES_PORT=5432
 POSTGRES_EXTERNAL_PORT=5440
 POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
+POSTGRES_PASSWORD=<db_password>
 POSTGRES_DB=cloaking
 
 # App
@@ -194,35 +200,31 @@ WORKERS=4
 PORT=8100
 
 # Admin
-ADMIN_LOGIN=admin
-ADMIN_PASSWORD=admin
-AUTH_SECRET=change-me-in-production
+ADMIN_LOGIN=<admin_username>
+ADMIN_PASSWORD=<admin_password>
+AUTH_SECRET=<secret_key>
 
-# Ports (for docker-compose)
+# Ports
 ADMINER_PORT=8180
 ```
 
-## Порты (по умолчанию)
-
-| Сервис | Порт |
-|--------|------|
-| API/Admin | 8100 |
-| PostgreSQL | 5440 |
-| Adminer | 8180 |
-
-## Миграции
+## Migrations
 
 ```bash
-# Применить
+# Apply
 alembic upgrade head
 
-# Откатить
+# Rollback
 alembic downgrade -1
 
-# Создать новую
+# Create new
 alembic revision --autogenerate -m "description"
 ```
 
-## Документация
+## License
 
-Подробное ТЗ: [CLAUDE.md](./CLAUDE.md)
+MIT License - see [LICENSE](LICENSE) file.
+
+## Documentation
+
+For detailed specifications, see [CLAUDE.md](./CLAUDE.md).
