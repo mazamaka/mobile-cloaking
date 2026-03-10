@@ -1,12 +1,13 @@
-from datetime import datetime
+"""Core business logic: client initialization and mode decision."""
 
-from sqlalchemy import select, func
+from datetime import UTC, datetime
+
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.table.app.enums import AppMode
 from app.table.app.model import App
 from app.table.client.model import Client
-from app.table.link.model import Link
 from app.table.client.schemas import (
     InitRequest,
     InitResponse,
@@ -14,19 +15,20 @@ from app.table.client.schemas import (
     UpdateConfig,
 )
 from app.table.geo.model import Geo
+from app.table.link.model import Link
 from app.table.offer.model import Offer
 from app.utils.logger import logger
 from config import SETTINGS
 
 
 class InitService:
-    """Service for handling /client/init requests."""
+    """Handle /client/init requests: find or create app/client, resolve offer."""
 
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
     async def get_or_create_app(self, bundle_id: str) -> App:
-        """Get existing app or create a new one."""
+        """Get existing app by bundle_id or create a new one with defaults."""
         stmt = select(App).where(App.bundle_id == bundle_id)
         result = await self.session.execute(stmt)
         app = result.scalar_one_or_none()
@@ -46,7 +48,11 @@ class InitService:
     async def get_or_create_client(
         self, app: App, data: InitRequest
     ) -> tuple[Client, bool]:
-        """Get existing client or create a new one. Returns (client, is_new)."""
+        """Get existing client or create a new one.
+
+        Returns:
+            Tuple of (client, is_new) where is_new indicates first-time client.
+        """
         stmt = select(Client).where(Client.internal_id == data.ids.internal_id)
         result = await self.session.execute(stmt)
         client = result.scalar_one_or_none()
@@ -63,13 +69,15 @@ class InitService:
                 region=data.device.region,
                 att_status=data.privacy.att,
                 idfa=data.ids.idfa,
-                appsflyer_id=data.attribution.appsflyer_id if data.attribution else None,
+                appsflyer_id=data.attribution.appsflyer_id
+                if data.attribution
+                else None,
                 push_token=data.push.token if data.push else None,
             )
             self.session.add(client)
             logger.info(f"Created new client: {data.ids.internal_id}")
         else:
-            # Update existing client
+            # Update existing client fields
             client.app_version = data.app.version
             client.language = data.device.language
             client.timezone = data.device.timezone
@@ -80,7 +88,7 @@ class InitService:
                 client.appsflyer_id = data.attribution.appsflyer_id
             if data.push:
                 client.push_token = data.push.token
-            client.last_seen_at = datetime.utcnow()
+            client.last_seen_at = datetime.now(UTC)
             client.sessions_count += 1
 
         await self.session.flush()
@@ -89,17 +97,16 @@ class InitService:
     async def get_offer_for_geo(self, app_id: int, region: str) -> Offer | None:
         """Find best offer for app and geo region.
 
-        Priority:
+        Priority order:
         1. Exact geo match (e.g., region="EE" matches geo.code="EE")
         2. Default geo (geo.is_default=True)
         3. None if no offers found
 
-        Uses COALESCE for priority/weight: override from Link or default from Offer.
+        Uses COALESCE for priority: override from Link or default from Offer.
         """
-        # Build effective priority: COALESCE(link.priority, offer.priority)
         effective_priority = func.coalesce(Link.priority, Offer.priority)
 
-        # 1. Try exact geo match via Link
+        # Try exact geo match
         stmt = (
             select(Offer)
             .join(Link, Offer.id == Link.offer_id)
@@ -120,7 +127,7 @@ class InitService:
         if offer:
             return offer
 
-        # 2. Fallback to default geo
+        # Fallback to default geo
         stmt = (
             select(Offer)
             .join(Link, Offer.id == Link.offer_id)
@@ -139,16 +146,14 @@ class InitService:
         return result.scalar_one_or_none()
 
     async def process_init(self, data: InitRequest) -> InitResponse:
-        """Process init request and return response."""
+        """Process init request: resolve app, client, offer, and build response."""
         app = await self.get_or_create_app(data.app.bundle_id)
         client, is_new = await self.get_or_create_client(app, data)
 
-        # Get offer for this geo
         offer = None
         if app.mode == AppMode.CASINO:
             offer = await self.get_offer_for_geo(app.id, data.device.region)
 
-        # Build response
         response = DecisionEngine.decide(app, offer)
 
         logger.info(
@@ -162,11 +167,15 @@ class InitService:
 
 
 class DecisionEngine:
-    """Decides response based on app mode and offer."""
+    """Build client response based on app mode and resolved offer."""
 
     @staticmethod
     def decide(app: App, offer: Offer | None = None) -> InitResponse:
-        """Build response. If result is set — casino mode, otherwise native."""
+        """Build InitResponse.
+
+        If result is set (URL string) -- casino mode (open WebView).
+        If result is None -- native mode (show legal content).
+        """
         prompts = PromptsConfig(
             rate_delay_sec=app.rate_delay_sec,
             push_delay_sec=app.push_delay_sec,
@@ -181,7 +190,6 @@ class DecisionEngine:
                 appstore_url=app.appstore_url,
             )
 
-        # result=URL means casino, result=None means native
         return InitResponse(
             result=offer.url if (app.mode == AppMode.CASINO and offer) else None,
             prompts=prompts,

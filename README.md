@@ -1,75 +1,160 @@
 # Mobile Cloaking API
 
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
+[![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg)](https://fastapi.tiangolo.com/)
+[![PostgreSQL 16](https://img.shields.io/badge/PostgreSQL-16-336791.svg)](https://www.postgresql.org/)
+[![SQLAlchemy 2.0](https://img.shields.io/badge/SQLAlchemy-2.0+-red.svg)](https://www.sqlalchemy.org/)
+[![Docker](https://img.shields.io/badge/Docker-ready-2496ED.svg)](https://www.docker.com/)
+[![Code style: Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Backend for iOS applications with cloaking mechanism for gambling vertical.
+Backend service for iOS applications with geo-targeted cloaking mechanism. Determines mobile app operating mode at launch and serves configuration based on app settings and user region.
 
-## Description
+## Architecture
 
-Service determines mobile application operating mode:
-- **Native mode (200)** - show legal application/game (for Apple moderators)
-- **Casino mode (400)** - open WebView with casino (for real users)
+```
+                    ┌──────────────────────────┐
+                    │     iOS Application       │
+                    │   (Swift / SwiftUI)       │
+                    └────────────┬─────────────┘
+                                 │
+                    POST /api/v1/client/init
+                    POST /api/v1/client/event
+                                 │
+                    ┌────────────▼─────────────┐
+                    │   Mobile Cloaking API     │
+                    │   FastAPI + Gunicorn      │
+                    │   ┌───────────────────┐   │
+                    │   │  Decision Engine   │   │
+                    │   │  (mode + geo)      │   │
+                    │   └───────────────────┘   │
+                    │   ┌───────────────────┐   │
+                    │   │  Admin Panel       │   │
+                    │   │  (Starlette Admin) │   │
+                    │   └───────────────────┘   │
+                    └────────────┬─────────────┘
+                                 │
+                    ┌────────────▼─────────────┐
+                    │   PostgreSQL 16 (async)   │
+                    │   via asyncpg + SQLModel  │
+                    └──────────────────────────┘
+```
 
-### GEO Targeting
+### Decision Flow
 
-System automatically selects offer by user region:
-1. User comes with `region="EE"` (Estonia)
-2. Search for offer for this GEO
-3. If not found → use default offer
-4. Return casino URL for this region
+```
+POST /api/v1/client/init (device.region = "EE")
+        │
+        ▼
+   App.mode == CASINO ?
+        │
+   YES ─┤── NO ──▶ 200 { result: null }  (Native mode)
+        │
+        ▼
+   Search Link: app_id + geo="EE"
+        │
+  FOUND ┤── NOT FOUND
+        │        │
+        │        ▼
+        │   Search fallback: geo.is_default=true
+        │        │
+        │   FOUND ┤── NOT FOUND ──▶ 200 { result: null }
+        │        │
+        ▼        ▼
+   200 { result: "https://casino-url.com" }  (Casino mode)
+```
+
+The client determines mode by checking the `result` field:
+- `result: null` -- show native app content (legal game/app)
+- `result: "url"` -- open WebView with the provided casino URL
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Framework** | FastAPI 0.115+ with async support |
+| **ORM** | SQLModel + SQLAlchemy 2.0 (async) |
+| **Database** | PostgreSQL 16 via asyncpg |
+| **Migrations** | Alembic (async) |
+| **Admin Panel** | Starlette Admin 0.14+ |
+| **Server** | Gunicorn + UvicornWorker |
+| **Logging** | Loguru |
+| **Settings** | Pydantic Settings v2 |
+| **Containerization** | Docker + Docker Compose |
 
 ## Quick Start
 
 ### Docker Compose (recommended)
 
 ```bash
-# Copy config
-cp stack.env.example stack.env
+# Clone and configure
+git clone <repository-url>
+cd mobile-cloaking
+cp stack.env.example stack.env    # Edit with your credentials
 
-# Run
+# Start all services
 docker compose up -d
 
-# Check health
+# Verify
 curl http://localhost:8100/health
+# {"status": "ok"}
 ```
 
 ### Local Development
 
 ```bash
-# Virtual environment
-python3 -m venv venv
-source venv/bin/activate
+# Create virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
 
-# PostgreSQL
-docker compose up -d db
+# Copy environment config
+cp .env.example .env              # Edit with your credentials
 
-# Migrations
-alembic upgrade head
+# Start PostgreSQL in Docker
+make db
 
-# Server
-uvicorn app.main:app --reload --port 8000
+# Run migrations
+make migrate
+
+# Start dev server with hot-reload
+make up                           # http://localhost:8000
 ```
-
-## Default Ports
-
-| Service | Port | Access |
-|---------|------|--------|
-| API/Admin | 8100 | http://localhost:8100 |
-| PostgreSQL | 5440 | localhost:5440 |
-| Adminer | 8180 | http://localhost:8180 |
 
 ## API Endpoints
 
-### POST /api/v1/client/init
+### Client API
 
-Client initialization:
-- `200 OK` - native mode
-- `400 Bad Request` - casino mode (with `result` field containing offer URL)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/v1/client/init` | App initialization -- returns mode config |
+| `POST` | `/api/v1/client/event` | Event logging (analytics) |
+
+### Health Checks
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/health` | Service health check |
+| `GET` | `/ready` | Readiness probe (Docker/K8s) |
+
+### Dashboard API (internal)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/v1/dashboard/stats` | Dashboard statistics |
+| `GET` | `/api/v1/dashboard/apps` | List apps |
+| `GET` | `/api/v1/dashboard/offers` | List offers |
+| `GET` | `/api/v1/dashboard/geos` | List geo regions |
+| `GET` | `/api/v1/dashboard/matrix` | Links matrix |
+| `POST` | `/api/v1/dashboard/links` | Create link |
+| `DELETE` | `/api/v1/dashboard/links/{id}` | Delete link |
+| `POST` | `/api/v1/dashboard/links/{id}/toggle` | Toggle link status |
+
+### Usage Examples
+
+**Initialize client:**
 
 ```bash
 curl -X POST http://localhost:8100/api/v1/client/init \
@@ -84,9 +169,27 @@ curl -X POST http://localhost:8100/api/v1/client/init \
   }'
 ```
 
-### POST /api/v1/client/event
+**Response (native mode):**
 
-Event logging:
+```json
+{
+  "result": null,
+  "prompts": {"rate_delay_sec": 180, "push_delay_sec": 60},
+  "update": null
+}
+```
+
+**Response (casino mode):**
+
+```json
+{
+  "result": "https://casino-partner.com/?click_id=abc123",
+  "prompts": {"rate_delay_sec": 180, "push_delay_sec": 60},
+  "update": null
+}
+```
+
+**Log event:**
 
 ```bash
 curl -X POST http://localhost:8100/api/v1/client/event \
@@ -105,126 +208,155 @@ curl -X POST http://localhost:8100/api/v1/client/event \
 ```
 mobile-cloaking/
 ├── app/
-│   ├── main.py              # FastAPI app
-│   ├── admin/               # Starlette Admin
-│   ├── api/v1/              # API routes
-│   ├── db/                  # Database
-│   ├── table/               # Models & Views
-│   │   ├── app/             # Apps (bundle_id, mode)
-│   │   ├── geo/             # GEO regions (EE, HU, PL)
-│   │   ├── offer/           # Offers (casino URLs per GEO)
-│   │   ├── client/          # Clients (devices)
-│   │   ├── event/           # Events
-│   │   └── init_log/        # Init logs
-│   ├── schemas/             # Common schemas
-│   └── utils/               # Logger, helpers
-├── migrations/              # Alembic
-├── config.py                # Settings
-├── docker-compose.yml
-├── Dockerfile
-└── requirements.txt
+│   ├── main.py                    # FastAPI app factory, lifespan, health checks
+│   ├── admin/
+│   │   ├── panel.py               # Starlette Admin setup & views registration
+│   │   ├── stats.py               # Dashboard statistics & CRUD operations
+│   │   ├── auth/provider.py       # Session-based authentication
+│   │   └── templates/
+│   │       └── dashboard.html     # Interactive Links Dashboard (JS SPA)
+│   ├── api/v1/
+│   │   ├── router.py              # API v1 router aggregator
+│   │   ├── deps.py                # Shared dependencies (DB session, headers)
+│   │   └── dashboard.py           # Dashboard REST API routes
+│   ├── db/
+│   │   ├── database.py            # AsyncEngine, session factory, Database class
+│   │   └── base.py                # Model imports for Alembic discovery
+│   ├── table/                     # Domain entities (each = folder)
+│   │   ├── app/                   # iOS applications (bundle_id, mode, settings)
+│   │   │   ├── model.py           # App SQLModel
+│   │   │   ├── view.py            # Admin view with delete protection
+│   │   │   └── enums.py           # AppMode (native/casino), UpdateMode
+│   │   ├── offer/                 # Casino offers (name, URL, priority)
+│   │   ├── geo/                   # Geographic regions (ISO codes, fallback)
+│   │   ├── group/                 # Organizational groups (APP/OFFER types)
+│   │   ├── link/                  # App <-> Offer <-> Geo bindings (unique per app+geo)
+│   │   ├── client/                # User devices
+│   │   │   ├── model.py           # Client SQLModel
+│   │   │   ├── schemas.py         # Init request/response Pydantic models
+│   │   │   ├── service.py         # InitService + DecisionEngine (core logic)
+│   │   │   ├── route.py           # POST /client/init endpoint
+│   │   │   └── view.py            # Admin view (read-only)
+│   │   ├── event/                 # Analytics events (rate_us, push prompts)
+│   │   └── init_log/              # Raw init request/response logs
+│   ├── schemas/
+│   │   └── common.py              # Shared enums (ATTStatus)
+│   └── utils/
+│       └── logger.py              # Loguru configuration
+├── migrations/                    # Alembic migrations
+├── tests/                         # Pytest async tests
+├── config.py                      # Pydantic Settings (env-based config)
+├── docker-compose.yml             # PostgreSQL + Adminer + App
+├── Dockerfile                     # Python 3.12-slim, non-root user
+├── Makefile                       # dev shortcuts (up, db, migrate)
+├── requirements.txt               # Pinned dependencies
+├── start-up.sh                    # Docker entrypoint (migrate + gunicorn)
+└── alembic.ini                    # Alembic configuration
 ```
 
-## Database
-
-### Tables
-
-| Table | Description |
-|-------|-------------|
-| `apps` | Applications (bundle_id, mode, settings) |
-| `geos` | Regions/countries (ISO codes: EE, HU, PL) |
-| `offers` | Casino offers (URL linked to App + Geo) |
-| `clients` | User devices |
-| `events` | Analytic events |
-| `init_logs` | Initialization request logs |
-
-### Offer Selection Flow
+## Database Schema
 
 ```
-           ┌─────────────────────────────────────┐
-           │  POST /api/v1/client/init           │
-           │  device.region = "EE"               │
-           └───────────────┬─────────────────────┘
-                           │
-                           ▼
-           ┌─────────────────────────────────────┐
-           │  App.mode == CASINO ?               │
-           └───────────────┬─────────────────────┘
-                           │
-              ┌────────────┴────────────┐
-              │ YES                     │ NO
-              ▼                         ▼
-    ┌─────────────────────┐    ┌─────────────────────┐
-    │ Search Offer:       │    │ Return 200          │
-    │ app_id + geo="EE"   │    │ Native mode         │
-    └─────────┬───────────┘    └─────────────────────┘
-              │
-              ▼
-    ┌─────────────────────┐
-    │ Found?              │
-    └─────────┬───────────┘
-              │
-     ┌────────┴────────┐
-     │ YES             │ NO
-     ▼                 ▼
-┌──────────┐   ┌─────────────────────┐
-│ 400      │   │ Search default      │
-│ + URL    │   │ geo.is_default=true │
-└──────────┘   └─────────┬───────────┘
-                         │
-                ┌────────┴────────┐
-                │ YES             │ NO
-                ▼                 ▼
-          ┌──────────┐     ┌──────────┐
-          │ 400      │     │ 200      │
-          │ + URL    │     │ Native   │
-          └──────────┘     └──────────┘
+┌──────────┐     ┌──────────┐     ┌──────────┐
+│  groups   │     │   apps   │     │  offers  │
+│──────────│     │──────────│     │──────────│
+│ id       │◄────│ group_id │     │ group_id │────►│
+│ name     │     │ bundle_id│     │ name     │     │
+│ type     │     │ mode     │     │ url      │     │
+│ (APP/    │     │ apple_id │     │ priority │     │
+│  OFFER)  │     │ rate/push│     │ weight   │     │
+└──────────┘     └────┬─────┘     └────┬─────┘
+                      │                │
+                      │   ┌────────┐   │
+                      └──►│ links  │◄──┘
+                          │────────│
+                          │ app_id │
+                          │offer_id│
+                     ┌───►│ geo_id │
+                     │    │priority│  (override)
+                     │    │ weight │  (override)
+                     │    └────────┘
+                     │    UNIQUE(app_id, geo_id)
+               ┌─────┴────┐
+               │   geos    │
+               │──────────│
+               │ code (EE) │
+               │ name      │
+               │ is_default│
+               └───────────┘
+
+┌──────────┐     ┌──────────┐     ┌───────────┐
+│ clients  │     │  events  │     │ init_logs │
+│──────────│     │──────────│     │───────────│
+│ internal │     │ client_id│     │ client_id │
+│ _id (UUID│     │ app_id   │     │ req/resp  │
+│ app_id   │     │ name     │     │ headers   │
+│ region   │     │ props    │     │ body      │
+│ att_status│    │ event_ts │     │ created_at│
+│ sessions │     │received_at│    └───────────┘
+└──────────┘     └──────────┘
 ```
 
 ## Configuration
 
-Environment variables in `stack.env`:
+All settings are loaded from environment variables via Pydantic Settings.
 
-```env
-# Database
-POSTGRES_HOST=db
-POSTGRES_PORT=5432
-POSTGRES_EXTERNAL_PORT=5440
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=<db_password>
-POSTGRES_DB=cloaking
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `POSTGRES_HOST` | `db` | Database host |
+| `POSTGRES_PORT` | `5432` | Database port (internal) |
+| `POSTGRES_EXTERNAL_PORT` | `5440` | Database port (mapped for local dev) |
+| `POSTGRES_USER` | `postgres` | Database user |
+| `POSTGRES_PASSWORD` | -- | Database password |
+| `POSTGRES_DB` | `cloaking` | Database name |
+| `DEBUG` | `false` | Enable debug mode (Swagger UI, verbose logs) |
+| `WORKERS` | `4` | Gunicorn worker count |
+| `PORT` | `8100` | External port mapping |
+| `ADMIN_LOGIN` | -- | Admin panel username |
+| `ADMIN_PASSWORD` | -- | Admin panel password |
+| `AUTH_SECRET` | -- | Session signing key (32+ chars) |
+| `TRUSTED_HOSTS` | `*` | Trusted proxy hosts (comma-separated) |
+| `ADMINER_PORT` | `8180` | Adminer UI port |
 
-# App
-DEBUG=true
-WORKERS=4
-PORT=8100
+## Services & Ports
 
-# Admin
-ADMIN_LOGIN=<admin_username>
-ADMIN_PASSWORD=<admin_password>
-AUTH_SECRET=<secret_key>
-
-# Ports
-ADMINER_PORT=8180
-```
+| Service | Dev Port | Prod Port | URL |
+|---------|----------|-----------|-----|
+| API / Admin | 8000 | 8100 | `/admin`, `/api/v1/*` |
+| PostgreSQL | 5440 | 5432 | -- |
+| Adminer | 8180 | 8180 | Web UI |
+| Swagger (debug) | -- | -- | `/docs` |
+| ReDoc (debug) | -- | -- | `/redoc` |
 
 ## Migrations
 
 ```bash
-# Apply
+# Apply all migrations
 alembic upgrade head
 
-# Rollback
+# Rollback last migration
 alembic downgrade -1
 
-# Create new
+# Create new migration (auto-detect changes)
 alembic revision --autogenerate -m "description"
 ```
 
+## Makefile Commands
+
+```bash
+make up       # Start DB + dev server with hot-reload
+make db       # Start only PostgreSQL
+make down     # Stop all Docker containers
+make logs     # Stream PostgreSQL logs
+make migrate  # Apply Alembic migrations
+```
+
+## Author
+
+**Maksym Babenko**
+- GitHub: [@mazamaka](https://github.com/mazamaka)
+- Telegram: [@Mazamaka](https://t.me/Mazamaka)
+
 ## License
 
-MIT License - see [LICENSE](LICENSE) file.
-
-## Documentation
-
-For detailed specifications, see [CLAUDE.md](./CLAUDE.md).
+MIT License -- see [LICENSE](LICENSE) file.

@@ -14,12 +14,32 @@ class GeoView(ModelView):
 
     fields = [
         IntegerField("id", label="ID", help_text="Уникальный идентификатор региона"),
-        StringField("code", label="Code (ISO)", help_text="ISO 3166-1 alpha-2 код страны: EE, HU, PL, US и т.д."),
-        StringField("name", label="Country Name", help_text="Полное название страны/региона"),
-        BooleanField("is_default", label="Default (fallback)", help_text="Использовать как fallback, если точное гео не найдено"),
-        BooleanField("is_active", label="Active", help_text="Активен ли регион (неактивные игнорируются)"),
-        StringField("created_at", label="Created At", help_text="Дата и время создания записи"),
-        StringField("updated_at", label="Updated At", help_text="Дата и время последнего обновления"),
+        StringField(
+            "code",
+            label="Code (ISO)",
+            help_text="ISO 3166-1 alpha-2 код страны: EE, HU, PL, US и т.д.",
+        ),
+        StringField(
+            "name", label="Country Name", help_text="Полное название страны/региона"
+        ),
+        BooleanField(
+            "is_default",
+            label="Default (fallback)",
+            help_text="Использовать как fallback, если точное гео не найдено",
+        ),
+        BooleanField(
+            "is_active",
+            label="Active",
+            help_text="Активен ли регион (неактивные игнорируются)",
+        ),
+        StringField(
+            "created_at", label="Created At", help_text="Дата и время создания записи"
+        ),
+        StringField(
+            "updated_at",
+            label="Updated At",
+            help_text="Дата и время последнего обновления",
+        ),
     ]
 
     exclude_fields_from_list = ["created_at", "updated_at"]

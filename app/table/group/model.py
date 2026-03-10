@@ -1,4 +1,6 @@
-from datetime import datetime
+"""Group model -- organizational groups for apps and offers."""
+
+from datetime import UTC, datetime
 from enum import Enum
 from typing import TYPE_CHECKING
 
@@ -11,14 +13,14 @@ if TYPE_CHECKING:
 
 
 class GroupType(str, Enum):
-    """Type of group."""
+    """Type of group: APP or OFFER."""
 
     APP = "app"
     OFFER = "offer"
 
 
 class Group(SQLModel, table=True):
-    """Universal group for organizing apps and offers."""
+    """Organizational group for apps or offers."""
 
     __tablename__ = "groups"
 
@@ -27,13 +29,14 @@ class Group(SQLModel, table=True):
     type: GroupType = Field(sa_column=Column(String(10), nullable=False, index=True))
     description: str | None = Field(default=None)
     is_active: bool = Field(default=True)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     # Relationships
     apps: list["App"] = Relationship(back_populates="group")
     offers: list["Offer"] = Relationship(back_populates="group")
 
-    def __admin_repr__(self, request) -> str:
-        type_val = self.type.value if hasattr(self.type, 'value') else self.type
+    def __admin_repr__(self, request: object) -> str:
+        """Return 'Name (type)' for admin panel."""
+        type_val = self.type.value if hasattr(self.type, "value") else self.type
         return f"{self.name} ({type_val})"

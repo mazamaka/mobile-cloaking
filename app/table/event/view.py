@@ -13,13 +13,36 @@ class EventView(ModelView):
 
     fields = [
         IntegerField("id", label="ID", help_text="Уникальный идентификатор события"),
-        HasOne("client", identity="client", label="Client", help_text="Клиент, отправивший событие"),
+        HasOne(
+            "client",
+            identity="client",
+            label="Client",
+            help_text="Клиент, отправивший событие",
+        ),
         HasOne("app", identity="app", label="App", help_text="Приложение клиента"),
-        StringField("name", label="Event Name", help_text="Название события (screen_view, button_click и т.д.)"),
-        StringField("event_ts", label="Event Time", help_text="Время события на устройстве"),
-        JSONField("props", label="Properties", help_text="JSON с дополнительными данными события"),
-        StringField("app_version", label="App Version", help_text="Версия приложения при отправке события"),
-        StringField("received_at", label="Received At", help_text="Время получения события сервером"),
+        StringField(
+            "name",
+            label="Event Name",
+            help_text="Название события (screen_view, button_click и т.д.)",
+        ),
+        StringField(
+            "event_ts", label="Event Time", help_text="Время события на устройстве"
+        ),
+        JSONField(
+            "props",
+            label="Properties",
+            help_text="JSON с дополнительными данными события",
+        ),
+        StringField(
+            "app_version",
+            label="App Version",
+            help_text="Версия приложения при отправке события",
+        ),
+        StringField(
+            "received_at",
+            label="Received At",
+            help_text="Время получения события сервером",
+        ),
     ]
 
     exclude_fields_from_list = ["props", "app_version"]

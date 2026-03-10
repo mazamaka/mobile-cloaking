@@ -61,16 +61,10 @@ router = APIRouter(prefix="/client", tags=["client"])
     responses={
         200: {
             "description": "Событие успешно записано",
-            "content": {
-                "application/json": {
-                    "example": {}
-                }
-            }
+            "content": {"application/json": {"example": {}}},
         },
-        422: {
-            "description": "Ошибка валидации — неверный формат данных"
-        }
-    }
+        422: {"description": "Ошибка валидации — неверный формат данных"},
+    },
 )
 async def client_event(
     body: EventRequest,

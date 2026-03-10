@@ -1,4 +1,6 @@
-from datetime import datetime
+"""Client model -- user devices identified by internal_id (UUID from Keychain)."""
+
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import Column, String
@@ -11,6 +13,8 @@ if TYPE_CHECKING:
 
 
 class Client(SQLModel, table=True):
+    """User device record, created on first /client/init request."""
+
     __tablename__ = "clients"
 
     id: int | None = Field(default=None, primary_key=True)
@@ -39,6 +43,6 @@ class Client(SQLModel, table=True):
     push_token: str | None = Field(default=None)
 
     # Activity
-    first_seen_at: datetime = Field(default_factory=datetime.utcnow)
-    last_seen_at: datetime = Field(default_factory=datetime.utcnow)
+    first_seen_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    last_seen_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     sessions_count: int = Field(default=1)

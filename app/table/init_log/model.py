@@ -1,4 +1,6 @@
-from datetime import datetime
+"""InitLog model -- raw init request/response logs."""
+
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, Optional
 
 from sqlalchemy import Column
@@ -10,6 +12,8 @@ if TYPE_CHECKING:
 
 
 class InitLog(SQLModel, table=True):
+    """Log entry for /client/init request-response pair."""
+
     __tablename__ = "init_logs"
 
     id: int | None = Field(default=None, primary_key=True)
@@ -27,4 +31,4 @@ class InitLog(SQLModel, table=True):
     response_body: dict[str, Any] = Field(sa_column=Column(JSONB))
 
     # Timestamp
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))

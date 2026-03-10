@@ -50,15 +50,15 @@ router = APIRouter(prefix="/client", tags=["client"])
                                 "result": None,
                                 "prompts": {
                                     "rate_delay_sec": 180,
-                                    "push_delay_sec": 60
+                                    "push_delay_sec": 60,
                                 },
                                 "update": {
                                     "min_version": "1.0",
                                     "latest_version": "1.2",
                                     "mode": "soft",
-                                    "appstore_url": "itms-apps://itunes.apple.com/app/id123456789"
-                                }
-                            }
+                                    "appstore_url": "itms-apps://itunes.apple.com/app/id123456789",
+                                },
+                            },
                         },
                         "casino": {
                             "summary": "Casino режим",
@@ -67,19 +67,17 @@ router = APIRouter(prefix="/client", tags=["client"])
                                 "result": "https://casino-partner.com/?click_id=abc123",
                                 "prompts": {
                                     "rate_delay_sec": 180,
-                                    "push_delay_sec": 60
+                                    "push_delay_sec": 60,
                                 },
-                                "update": None
-                            }
-                        }
+                                "update": None,
+                            },
+                        },
                     }
                 }
-            }
+            },
         },
-        422: {
-            "description": "Ошибка валидации — неверный формат данных"
-        }
-    }
+        422: {"description": "Ошибка валидации — неверный формат данных"},
+    },
 )
 async def client_init(
     body: InitRequest,

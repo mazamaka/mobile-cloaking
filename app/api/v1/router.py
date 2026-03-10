@@ -1,3 +1,5 @@
+"""API v1 router aggregating all sub-routers."""
+
 from fastapi import APIRouter
 
 from app.api.v1.dashboard import router as dashboard_router

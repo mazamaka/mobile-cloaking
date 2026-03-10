@@ -1,3 +1,5 @@
+"""Application settings loaded from environment variables."""
+
 from functools import lru_cache
 from pathlib import Path
 
@@ -5,13 +7,20 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 def _is_docker() -> bool:
+    """Check if running inside a Docker container."""
     return Path("/.dockerenv").exists()
 
 
-IS_DOCKER = _is_docker()
+IS_DOCKER: bool = _is_docker()
 
 
 class Settings(BaseSettings):
+    """Application configuration via environment variables.
+
+    Settings are loaded from `.env` file and can be overridden
+    by actual environment variables (higher priority).
+    """
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -46,15 +55,17 @@ class Settings(BaseSettings):
 
     @property
     def effective_host(self) -> str:
+        """Return DB host: container name in Docker, localhost otherwise."""
         return self.postgres_host if IS_DOCKER else "127.0.0.1"
 
     @property
     def effective_port(self) -> int:
-        """В Docker — внутренний порт, локально — внешний (mapped) порт."""
+        """Return DB port: internal in Docker, external (mapped) locally."""
         return self.postgres_port if IS_DOCKER else self.postgres_external_port
 
     @property
     def database_url(self) -> str:
+        """Async database URL for asyncpg driver."""
         return (
             f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}"
             f"@{self.effective_host}:{self.effective_port}/{self.postgres_db}"
@@ -62,6 +73,7 @@ class Settings(BaseSettings):
 
     @property
     def database_url_sync(self) -> str:
+        """Sync database URL for psycopg2 driver (Alembic)."""
         return (
             f"postgresql://{self.postgres_user}:{self.postgres_password}"
             f"@{self.effective_host}:{self.effective_port}/{self.postgres_db}"
@@ -70,7 +82,8 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
+    """Create and cache application settings singleton."""
     return Settings()
 
 
-SETTINGS = get_settings()
+SETTINGS: Settings = get_settings()

@@ -1,4 +1,5 @@
-# Import all models here for Alembic to detect them
+"""Import all models for Alembic metadata discovery."""
+
 from app.table.app.model import App  # noqa: F401
 from app.table.client.model import Client  # noqa: F401
 from app.table.event.model import Event  # noqa: F401

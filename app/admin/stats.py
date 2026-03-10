@@ -93,7 +93,7 @@ async def get_apps_list(session: AsyncSession) -> list[dict]:
             "id": app.id,
             "name": app.name or app.bundle_id,
             "bundle_id": app.bundle_id,
-            "mode": app.mode.value if hasattr(app.mode, 'value') else app.mode,
+            "mode": app.mode.value if hasattr(app.mode, "value") else app.mode,
             "group": app.group.name if app.group else None,
         }
         for app in apps
@@ -162,7 +162,9 @@ async def get_link_matrix(session: AsyncSession) -> list[dict]:
             "id": link.id,
             "app_id": link.app_id,
             "app_name": link.app.name or link.app.bundle_id if link.app else None,
-            "app_mode": link.app.mode.value if link.app and hasattr(link.app.mode, 'value') else (link.app.mode if link.app else None),
+            "app_mode": link.app.mode.value
+            if link.app and hasattr(link.app.mode, "value")
+            else (link.app.mode if link.app else None),
             "offer_id": link.offer_id,
             "offer_name": link.offer.name if link.offer else None,
             "offer_priority": link.offer.priority if link.offer else None,
@@ -176,8 +178,6 @@ async def get_link_matrix(session: AsyncSession) -> list[dict]:
         }
         for link in links
     ]
-
-
 
 
 async def create_link(
@@ -202,8 +202,6 @@ async def create_link(
     return {"id": link.id, "success": True}
 
 
-
-
 async def delete_link(session: AsyncSession, link_id: int) -> dict:
     """Delete a Link."""
     stmt = select(Link).where(Link.id == link_id)
@@ -214,8 +212,6 @@ async def delete_link(session: AsyncSession, link_id: int) -> dict:
         await session.delete(link)
         return {"success": True}
     return {"success": False, "error": "Link not found"}
-
-
 
 
 async def toggle_link(session: AsyncSession, link_id: int) -> dict:
@@ -230,9 +226,9 @@ async def toggle_link(session: AsyncSession, link_id: int) -> dict:
     return {"success": False, "error": "Link not found"}
 
 
-
-
-async def get_groups_list(session: AsyncSession, group_type: GroupType | None = None) -> list[dict]:
+async def get_groups_list(
+    session: AsyncSession, group_type: GroupType | None = None
+) -> list[dict]:
     """Get groups for dropdown."""
     stmt = select(Group).where(Group.is_active == True)  # noqa: E712
     if group_type:
@@ -246,7 +242,7 @@ async def get_groups_list(session: AsyncSession, group_type: GroupType | None = 
         {
             "id": group.id,
             "name": group.name,
-            "type": group.type.value if hasattr(group.type, 'value') else group.type,
+            "type": group.type.value if hasattr(group.type, "value") else group.type,
         }
         for group in groups
     ]

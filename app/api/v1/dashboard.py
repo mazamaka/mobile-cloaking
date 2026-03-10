@@ -92,7 +92,10 @@ async def create_new_link(
         await session.rollback()
         error_msg = str(e)
         if "uq_link_app_geo" in error_msg or "uq_app_offer_geo_app_geo" in error_msg:
-            return {"success": False, "error": "This Geo is already assigned in this App"}
+            return {
+                "success": False,
+                "error": "This Geo is already assigned in this App",
+            }
         return {"success": False, "error": str(e)}
 
 

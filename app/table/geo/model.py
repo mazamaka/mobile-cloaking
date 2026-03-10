@@ -1,4 +1,6 @@
-from datetime import datetime
+"""Geo model -- geographic regions for offer targeting."""
+
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlmodel import Field, Relationship, SQLModel
@@ -8,7 +10,11 @@ if TYPE_CHECKING:
 
 
 class Geo(SQLModel, table=True):
-    """Geographic regions/countries for offer targeting."""
+    """Geographic region (country) for offer targeting.
+
+    One geo can be marked as is_default=True to serve as fallback
+    when no exact region match is found.
+    """
 
     __tablename__ = "geos"
 
@@ -27,11 +33,12 @@ class Geo(SQLModel, table=True):
     is_active: bool = Field(default=True)
 
     # Timestamps
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     # Relationships
     links: list["Link"] = Relationship(back_populates="geo")
 
-    def __admin_repr__(self, request) -> str:
+    def __admin_repr__(self, request: object) -> str:
+        """Return 'CODE (Name)' for admin panel."""
         return f"{self.code} ({self.name})"

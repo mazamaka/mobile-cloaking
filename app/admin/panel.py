@@ -88,9 +88,21 @@ def create_admin() -> Admin:
             "Documentation",
             icon="fas fa-book",
             views=[
-                AdminLink(label="Swagger UI", icon="fas fa-file-code", url="/docs", target="_blank"),
-                AdminLink(label="ReDoc", icon="fas fa-file-alt", url="/redoc", target="_blank"),
-                AdminLink(label="OpenAPI JSON", icon="fas fa-code", url="/openapi.json", target="_blank"),
+                AdminLink(
+                    label="Swagger UI",
+                    icon="fas fa-file-code",
+                    url="/docs",
+                    target="_blank",
+                ),
+                AdminLink(
+                    label="ReDoc", icon="fas fa-file-alt", url="/redoc", target="_blank"
+                ),
+                AdminLink(
+                    label="OpenAPI JSON",
+                    icon="fas fa-code",
+                    url="/openapi.json",
+                    target="_blank",
+                ),
             ],
         )
     )

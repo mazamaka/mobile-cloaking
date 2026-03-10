@@ -1,199 +1,172 @@
+"""Request/response Pydantic schemas for /api/v1/client/init endpoint."""
+
 from pydantic import BaseModel, Field
 
 from app.schemas.common import ATTStatus
 from app.table.app.enums import UpdateMode
 
 
-# Request schemas
+# --- Request schemas ---
+
+
 class AppInfo(BaseModel):
-    """Информация о приложении."""
+    """Application metadata sent by the iOS client."""
 
     bundle_id: str = Field(
         ...,
-        description="Bundle ID приложения (например: com.company.app)",
+        description="Bundle ID (e.g., com.company.app)",
         examples=["com.example.game"],
     )
     version: str = Field(
         ...,
-        description="Версия приложения",
+        description="App version string",
         examples=["1.0.0", "2.1.3"],
     )
 
 
 class DeviceInfo(BaseModel):
-    """Информация об устройстве."""
+    """Device information from the iOS client."""
 
     language: str = Field(
         ...,
-        description="Язык устройства в формате ISO (например: en-US, ru-RU)",
+        description="Device language in ISO format (e.g., en-US, ru-RU)",
         examples=["en-US", "ru-RU", "en-EE"],
     )
     timezone: str = Field(
         ...,
-        description="Часовой пояс устройства",
+        description="Device timezone identifier",
         examples=["Europe/Moscow", "Europe/Budapest", "America/New_York"],
     )
     region: str = Field(
         ...,
-        description="Регион устройства (ISO 3166-1 alpha-2)",
+        description="Device region (ISO 3166-1 alpha-2)",
         examples=["RU", "EE", "HU", "US"],
     )
 
 
 class PrivacyInfo(BaseModel):
-    """Настройки приватности."""
+    """Privacy settings from the iOS client."""
 
     att: ATTStatus = Field(
         ...,
-        description="""Статус App Tracking Transparency (iOS 14+):
-- `authorized` — пользователь разрешил трекинг
-- `denied` — пользователь запретил трекинг
-- `notDetermined` — пользователь ещё не принял решение
-- `restricted` — трекинг ограничен (родительский контроль)
-- `legacy` — iOS версия ниже 14
-- `unavailable` — трекинг отключён на устройстве""",
+        description=(
+            "App Tracking Transparency status (iOS 14+): "
+            "authorized, denied, notDetermined, restricted, legacy, unavailable"
+        ),
     )
 
 
 class IdsInfo(BaseModel):
-    """Идентификаторы устройства."""
+    """Device identifiers."""
 
     internal_id: str = Field(
         ...,
-        description="Уникальный ID устройства (UUID v4, хранится в Keychain)",
+        description="Unique device ID (UUID v4 stored in Keychain)",
         examples=["550e8400-e29b-41d4-a716-446655440000"],
     )
     idfa: str | None = Field(
         default=None,
-        description="IDFA (Identifier for Advertisers). Доступен только при att=authorized",
+        description="IDFA (Identifier for Advertisers). Available only when att=authorized",
         examples=["AEBE52E7-03EE-455A-B3C4-E57283966239"],
     )
 
 
 class AttributionInfo(BaseModel):
-    """Данные атрибуции."""
+    """Attribution data from AppsFlyer or similar SDK."""
 
     appsflyer_id: str | None = Field(
         default=None,
-        description="AppsFlyer ID для атрибуции установок",
+        description="AppsFlyer ID for install attribution",
         examples=["1765992827433-2791097"],
     )
 
 
 class PushInfo(BaseModel):
-    """Push-уведомления."""
+    """Push notification data."""
 
-    token: str | None = Field(
+    token: str | None = Field(  # noqa: S105
         default=None,
-        description="Push-токен устройства (APNs token)",
-        examples=["abc123def456..."],
+        description="APNs push notification identifier",
     )
 
 
 class InitRequest(BaseModel):
-    """
-    Тело запроса POST /api/v1/client/init.
+    """Request body for POST /api/v1/client/init.
 
-    Отправляется при каждом запуске приложения для определения режима работы.
+    Sent on every app launch to determine operating mode.
     """
 
     schema_: int = Field(
         alias="schema",
-        description="Версия схемы API (сейчас всегда 1)",
+        description="API schema version (currently always 1)",
         examples=[1],
     )
-    app: AppInfo = Field(
-        ...,
-        description="Информация о приложении",
-    )
-    device: DeviceInfo = Field(
-        ...,
-        description="Информация об устройстве",
-    )
-    privacy: PrivacyInfo = Field(
-        ...,
-        description="Настройки приватности (ATT статус)",
-    )
-    ids: IdsInfo = Field(
-        ...,
-        description="Идентификаторы устройства",
-    )
+    app: AppInfo = Field(..., description="Application metadata")
+    device: DeviceInfo = Field(..., description="Device information")
+    privacy: PrivacyInfo = Field(..., description="Privacy settings (ATT status)")
+    ids: IdsInfo = Field(..., description="Device identifiers")
     attribution: AttributionInfo | None = Field(
-        default=None,
-        description="Данные атрибуции (опционально)",
+        default=None, description="Attribution data (optional)"
     )
-    push: PushInfo | None = Field(
-        default=None,
-        description="Push-токен (опционально)",
-    )
+    push: PushInfo | None = Field(default=None, description="Push data (optional)")
 
     model_config = {"extra": "ignore", "populate_by_name": True}
 
 
-# Response schemas
+# --- Response schemas ---
+
+
 class PromptsConfig(BaseModel):
-    """Настройки всплывающих окон."""
+    """Prompt timing configuration for Rate Us and Push dialogs."""
 
     rate_delay_sec: int = Field(
         ...,
-        description="Задержка перед показом 'Оцените приложение' (секунды)",
+        description="Delay before showing Rate App dialog (seconds)",
         examples=[180],
     )
     push_delay_sec: int = Field(
         ...,
-        description="Задержка перед показом запроса push-уведомлений (секунды)",
+        description="Delay before push notification permission request (seconds)",
         examples=[60],
     )
 
 
 class UpdateConfig(BaseModel):
-    """Настройки обновления приложения."""
+    """App update configuration."""
 
     min_version: str | None = Field(
         default=None,
-        description="Минимальная поддерживаемая версия",
+        description="Minimum supported app version",
         examples=["1.0.0"],
     )
     latest_version: str | None = Field(
         default=None,
-        description="Последняя доступная версия",
+        description="Latest available app version",
         examples=["1.2.0"],
     )
     mode: UpdateMode | None = Field(
         default=None,
-        description="Режим обновления: soft (рекомендуем) или force (обязательно)",
+        description="Update mode: soft (suggestion) or force (mandatory)",
     )
     appstore_url: str | None = Field(
         default=None,
-        description="URL для открытия App Store",
-        examples=["itms-apps://itunes.apple.com/app/id123456789"],
+        description="App Store URL for update",
     )
 
 
 class InitResponse(BaseModel):
-    """
-    Ответ 200 OK на /client/init.
+    """Response for /client/init.
 
-    Режим определяется по наличию поля `result`:
-    - `result` есть → Casino режим (открыть WebView с URL)
-    - `result` отсутствует → Native режим (показать нативный контент)
+    Mode is determined by the result field:
+    - result is a URL string -- Casino mode (open WebView)
+    - result is null -- Native mode (show legal content)
     """
 
     result: str | None = Field(
         default=None,
-        description="URL казино для открытия в WebView. Если null — показать нативный контент.",
-        examples=["https://casino-partner.com/?click_id=abc123&sub1=value"],
+        description="Casino URL for WebView. If null -- show native content.",
     )
-    prompts: PromptsConfig = Field(
-        ...,
-        description="Настройки задержек для всплывающих окон",
-    )
+    prompts: PromptsConfig = Field(..., description="Prompt timing configuration")
     update: UpdateConfig | None = Field(
-        default=None,
-        description="Информация об обновлении (если есть)",
+        default=None, description="Update info (if available)"
     )
-
-
-# Алиасы для обратной совместимости (deprecated)
-InitResponseNative = InitResponse
-InitResponseCasino = InitResponse

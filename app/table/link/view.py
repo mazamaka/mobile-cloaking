@@ -14,13 +14,42 @@ class LinkView(ModelView):
 
     fields = [
         IntegerField("id", label="ID", help_text="Уникальный идентификатор связки"),
-        HasOne("app", identity="app", label="App", help_text="Приложение для которого настраивается оффер"),
-        HasOne("offer", identity="offer", label="Offer", help_text="Оффер который будет показан клиентам"),
-        HasOne("geo", identity="geo", label="Geo", help_text="Регион для таргетинга (одно гео = один оффер в приложении)"),
-        IntegerField("priority", label="Priority Override", help_text="Переопределение приоритета оффера (пусто = использовать из оффера)"),
-        IntegerField("weight", label="Weight Override", help_text="Переопределение веса для A/B (пусто = использовать из оффера)"),
-        BooleanField("is_active", label="Active", help_text="Активна ли связка (неактивные игнорируются)"),
-        StringField("created_at", label="Created At", help_text="Дата и время создания записи"),
+        HasOne(
+            "app",
+            identity="app",
+            label="App",
+            help_text="Приложение для которого настраивается оффер",
+        ),
+        HasOne(
+            "offer",
+            identity="offer",
+            label="Offer",
+            help_text="Оффер который будет показан клиентам",
+        ),
+        HasOne(
+            "geo",
+            identity="geo",
+            label="Geo",
+            help_text="Регион для таргетинга (одно гео = один оффер в приложении)",
+        ),
+        IntegerField(
+            "priority",
+            label="Priority Override",
+            help_text="Переопределение приоритета оффера (пусто = использовать из оффера)",
+        ),
+        IntegerField(
+            "weight",
+            label="Weight Override",
+            help_text="Переопределение веса для A/B (пусто = использовать из оффера)",
+        ),
+        BooleanField(
+            "is_active",
+            label="Active",
+            help_text="Активна ли связка (неактивные игнорируются)",
+        ),
+        StringField(
+            "created_at", label="Created At", help_text="Дата и время создания записи"
+        ),
     ]
 
     exclude_fields_from_list = ["priority", "weight", "created_at"]
@@ -57,12 +86,12 @@ class LinkView(ModelView):
         if result.scalar_one_or_none():
             geo = await session.get(Geo, geo_id)
             raise FormValidationError(
-                {"geo": f"Geo '{geo.code if geo else geo_id}' already assigned to another offer"}
+                {
+                    "geo": f"Geo '{geo.code if geo else geo_id}' already assigned to another offer"
+                }
             )
 
-    async def before_create(
-        self, request: Request, data: dict, obj: Link
-    ) -> None:
+    async def before_create(self, request: Request, data: dict, obj: Link) -> None:
         """Validate uniqueness before create."""
         app_id = data.get("app")
         geo_id = data.get("geo")
@@ -70,15 +99,15 @@ class LinkView(ModelView):
         if app_id and geo_id:
             await self._validate_geo_uniqueness(request, app_id, geo_id)
 
-    async def before_edit(
-        self, request: Request, data: dict, obj: Link
-    ) -> None:
+    async def before_edit(self, request: Request, data: dict, obj: Link) -> None:
         """Validate uniqueness when editing."""
         app_id = data.get("app", obj.app_id)
         geo_id = data.get("geo", obj.geo_id)
 
         if app_id and geo_id:
-            await self._validate_geo_uniqueness(request, app_id, geo_id, exclude_id=obj.id)
+            await self._validate_geo_uniqueness(
+                request, app_id, geo_id, exclude_id=obj.id
+            )
 
 
 link_view = LinkView(Link, icon="fas fa-link")

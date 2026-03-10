@@ -1,15 +1,17 @@
+"""Enums for App model."""
+
 from enum import Enum
 
 
 class AppMode(str, Enum):
-    """App mode - determines response type."""
+    """App operating mode -- determines client response type."""
 
-    NATIVE = "native"  # Return 200 OK
-    CASINO = "casino"  # Return 400 with casino URL
+    NATIVE = "native"  # result=null, show legal app content
+    CASINO = "casino"  # result=url, open WebView with casino
 
 
 class UpdateMode(str, Enum):
-    """Update mode for app version checks."""
+    """Update enforcement mode for app version checks."""
 
-    SOFT = "soft"  # Show update suggestion
-    FORCE = "force"  # Force update required
+    SOFT = "soft"  # Show update suggestion (dismissible)
+    FORCE = "force"  # Force update required (blocking)

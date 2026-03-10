@@ -1,5 +1,12 @@
 from starlette.requests import Request
-from starlette_admin import BooleanField, EnumField, HasMany, HasOne, IntegerField, StringField
+from starlette_admin import (
+    BooleanField,
+    EnumField,
+    HasMany,
+    HasOne,
+    IntegerField,
+    StringField,
+)
 from starlette_admin.contrib.sqlmodel import ModelView
 from starlette_admin.exceptions import ActionFailed
 
@@ -15,21 +22,81 @@ class AppView(ModelView):
 
     fields = [
         IntegerField("id", label="ID", help_text="Уникальный идентификатор приложения"),
-        HasOne("group", identity="group", label="Group", help_text="Группа для организации приложений"),
-        StringField("bundle_id", label="Bundle ID", help_text="Уникальный идентификатор пакета (com.example.app)"),
-        StringField("apple_id", label="Apple ID", help_text="ID приложения в App Store (например, 123456789)"),
-        StringField("name", label="Name", help_text="Человекочитаемое название приложения"),
-        EnumField("mode", enum=AppMode, label="Mode", help_text="NATIVE = 200 OK для модераторов, CASINO = редирект на казино"),
-        IntegerField("rate_delay_sec", label="Rate Delay (sec)", help_text="Задержка перед показом Rate App диалога (секунды)"),
-        IntegerField("push_delay_sec", label="Push Delay (sec)", help_text="Задержка перед запросом Push-уведомлений (секунды)"),
-        StringField("min_version", label="Min Version", help_text="Минимальная поддерживаемая версия приложения"),
-        StringField("latest_version", label="Latest Version", help_text="Последняя доступная версия приложения"),
-        EnumField("update_mode", enum=UpdateMode, label="Update Mode", help_text="SOFT = предложение, FORCE = принудительное обновление"),
-        StringField("appstore_url", label="App Store URL", help_text="Ссылка на приложение в App Store"),
-        BooleanField("is_active", label="Active", help_text="Активно ли приложение (неактивные игнорируются)"),
-        HasMany("links", identity="link", label="Links", help_text="Связки приложения с офферами и гео"),
-        StringField("created_at", label="Created At", help_text="Дата и время создания записи"),
-        StringField("updated_at", label="Updated At", help_text="Дата и время последнего обновления"),
+        HasOne(
+            "group",
+            identity="group",
+            label="Group",
+            help_text="Группа для организации приложений",
+        ),
+        StringField(
+            "bundle_id",
+            label="Bundle ID",
+            help_text="Уникальный идентификатор пакета (com.example.app)",
+        ),
+        StringField(
+            "apple_id",
+            label="Apple ID",
+            help_text="ID приложения в App Store (например, 123456789)",
+        ),
+        StringField(
+            "name", label="Name", help_text="Человекочитаемое название приложения"
+        ),
+        EnumField(
+            "mode",
+            enum=AppMode,
+            label="Mode",
+            help_text="NATIVE = 200 OK для модераторов, CASINO = редирект на казино",
+        ),
+        IntegerField(
+            "rate_delay_sec",
+            label="Rate Delay (sec)",
+            help_text="Задержка перед показом Rate App диалога (секунды)",
+        ),
+        IntegerField(
+            "push_delay_sec",
+            label="Push Delay (sec)",
+            help_text="Задержка перед запросом Push-уведомлений (секунды)",
+        ),
+        StringField(
+            "min_version",
+            label="Min Version",
+            help_text="Минимальная поддерживаемая версия приложения",
+        ),
+        StringField(
+            "latest_version",
+            label="Latest Version",
+            help_text="Последняя доступная версия приложения",
+        ),
+        EnumField(
+            "update_mode",
+            enum=UpdateMode,
+            label="Update Mode",
+            help_text="SOFT = предложение, FORCE = принудительное обновление",
+        ),
+        StringField(
+            "appstore_url",
+            label="App Store URL",
+            help_text="Ссылка на приложение в App Store",
+        ),
+        BooleanField(
+            "is_active",
+            label="Active",
+            help_text="Активно ли приложение (неактивные игнорируются)",
+        ),
+        HasMany(
+            "links",
+            identity="link",
+            label="Links",
+            help_text="Связки приложения с офферами и гео",
+        ),
+        StringField(
+            "created_at", label="Created At", help_text="Дата и время создания записи"
+        ),
+        StringField(
+            "updated_at",
+            label="Updated At",
+            help_text="Дата и время последнего обновления",
+        ),
     ]
 
     exclude_fields_from_list = ["appstore_url", "links", "created_at", "updated_at"]

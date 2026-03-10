@@ -1,4 +1,6 @@
-from datetime import datetime
+"""Link model -- binding between App, Offer, and Geo."""
+
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import UniqueConstraint
@@ -11,16 +13,14 @@ if TYPE_CHECKING:
 
 
 class Link(SQLModel, table=True):
-    """Связь App + Offer + Geo.
+    """Binding of App + Offer + Geo.
 
-    CONSTRAINT: В рамках одного App каждый Geo может быть привязан
-    только к одному Offer. Это гарантируется UNIQUE(app_id, geo_id).
+    CONSTRAINT: Within one App, each Geo can be bound
+    to only one Offer. Enforced by UNIQUE(app_id, geo_id).
     """
 
     __tablename__ = "links"
-    __table_args__ = (
-        UniqueConstraint("app_id", "geo_id", name="uq_link_app_geo"),
-    )
+    __table_args__ = (UniqueConstraint("app_id", "geo_id", name="uq_link_app_geo"),)
 
     id: int | None = Field(default=None, primary_key=True)
 
@@ -43,10 +43,11 @@ class Link(SQLModel, table=True):
     # Status
     is_active: bool = Field(default=True, index=True)
 
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
-    def __admin_repr__(self, request) -> str:
-        app_name = getattr(self.app, 'name', None) or f"App #{self.app_id}"
-        offer_name = getattr(self.offer, 'name', None) or f"Offer #{self.offer_id}"
-        geo_code = getattr(self.geo, 'code', None) or f"Geo #{self.geo_id}"
+    def __admin_repr__(self, request: object) -> str:
+        """Return 'App | Offer | Geo' for admin panel."""
+        app_name = getattr(self.app, "name", None) or f"App #{self.app_id}"
+        offer_name = getattr(self.offer, "name", None) or f"Offer #{self.offer_id}"
+        geo_code = getattr(self.geo, "code", None) or f"Geo #{self.geo_id}"
         return f"{app_name} | {offer_name} | {geo_code}"

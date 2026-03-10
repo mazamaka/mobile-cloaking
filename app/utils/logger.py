@@ -1,3 +1,5 @@
+"""Loguru logger configuration for the application."""
+
 import sys
 
 from loguru import logger
@@ -6,6 +8,7 @@ from config import SETTINGS
 
 
 def setup_logger() -> None:
+    """Configure loguru with colored output and appropriate log level."""
     logger.remove()
 
     log_format = (

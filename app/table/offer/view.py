@@ -14,15 +14,47 @@ class OfferView(ModelView):
 
     fields = [
         IntegerField("id", label="ID", help_text="Уникальный идентификатор оффера"),
-        HasOne("group", identity="group", label="Group", help_text="Группа для организации офферов"),
-        StringField("name", label="Offer Name", help_text="Название оффера для идентификации"),
-        StringField("url", label="Casino URL", help_text="URL казино для редиректа клиентов"),
-        IntegerField("priority", label="Priority", help_text="Приоритет выбора (выше = важнее, по умолчанию)"),
-        IntegerField("weight", label="Weight", help_text="Вес для A/B тестирования (по умолчанию 100)"),
-        BooleanField("is_active", label="Active", help_text="Активен ли оффер (неактивные игнорируются)"),
-        HasMany("links", identity="link", label="Links", help_text="Связки оффера с приложениями и гео"),
-        StringField("created_at", label="Created At", help_text="Дата и время создания записи"),
-        StringField("updated_at", label="Updated At", help_text="Дата и время последнего обновления"),
+        HasOne(
+            "group",
+            identity="group",
+            label="Group",
+            help_text="Группа для организации офферов",
+        ),
+        StringField(
+            "name", label="Offer Name", help_text="Название оффера для идентификации"
+        ),
+        StringField(
+            "url", label="Casino URL", help_text="URL казино для редиректа клиентов"
+        ),
+        IntegerField(
+            "priority",
+            label="Priority",
+            help_text="Приоритет выбора (выше = важнее, по умолчанию)",
+        ),
+        IntegerField(
+            "weight",
+            label="Weight",
+            help_text="Вес для A/B тестирования (по умолчанию 100)",
+        ),
+        BooleanField(
+            "is_active",
+            label="Active",
+            help_text="Активен ли оффер (неактивные игнорируются)",
+        ),
+        HasMany(
+            "links",
+            identity="link",
+            label="Links",
+            help_text="Связки оффера с приложениями и гео",
+        ),
+        StringField(
+            "created_at", label="Created At", help_text="Дата и время создания записи"
+        ),
+        StringField(
+            "updated_at",
+            label="Updated At",
+            help_text="Дата и время последнего обновления",
+        ),
     ]
 
     exclude_fields_from_list = ["url", "links", "created_at", "updated_at"]

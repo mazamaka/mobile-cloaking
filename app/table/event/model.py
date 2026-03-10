@@ -1,4 +1,6 @@
-from datetime import datetime
+"""Event model -- analytics events from iOS clients."""
+
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, Optional
 
 from sqlalchemy import Column
@@ -11,6 +13,8 @@ if TYPE_CHECKING:
 
 
 class Event(SQLModel, table=True):
+    """Analytics event recorded from client device."""
+
     __tablename__ = "events"
 
     id: int | None = Field(default=None, primary_key=True)
@@ -31,4 +35,4 @@ class Event(SQLModel, table=True):
     app_version: str
 
     # Server time
-    received_at: datetime = Field(default_factory=datetime.utcnow)
+    received_at: datetime = Field(default_factory=lambda: datetime.now(UTC))

@@ -29,7 +29,9 @@ class TestClientInit:
     @pytest.mark.anyio
     async def test_init_with_full_request(self, client, valid_init_request_full):
         """Init with all optional fields works correctly."""
-        valid_init_request_full["app"]["bundle_id"] = f"com.test.full.{uuid.uuid4().hex[:8]}"
+        valid_init_request_full["app"]["bundle_id"] = (
+            f"com.test.full.{uuid.uuid4().hex[:8]}"
+        )
 
         response = await client.post(
             "/api/v1/client/init",
@@ -46,7 +48,9 @@ class TestClientInit:
         """Multiple inits from same client increment sessions_count."""
         unique_internal_id = str(uuid.uuid4())
         valid_init_request["ids"]["internal_id"] = unique_internal_id
-        valid_init_request["app"]["bundle_id"] = f"com.test.sessions.{uuid.uuid4().hex[:8]}"
+        valid_init_request["app"]["bundle_id"] = (
+            f"com.test.sessions.{uuid.uuid4().hex[:8]}"
+        )
 
         # First init
         response1 = await client.post(
@@ -97,11 +101,20 @@ class TestClientInit:
     @pytest.mark.anyio
     async def test_init_all_att_statuses(self, client, valid_init_request):
         """Init works with all valid ATT statuses."""
-        att_statuses = ["authorized", "denied", "notDetermined", "restricted", "legacy", "unavailable"]
+        att_statuses = [
+            "authorized",
+            "denied",
+            "notDetermined",
+            "restricted",
+            "legacy",
+            "unavailable",
+        ]
 
         for att_status in att_statuses:
             valid_init_request["ids"]["internal_id"] = str(uuid.uuid4())
-            valid_init_request["app"]["bundle_id"] = f"com.test.att.{uuid.uuid4().hex[:8]}"
+            valid_init_request["app"]["bundle_id"] = (
+                f"com.test.att.{uuid.uuid4().hex[:8]}"
+            )
             valid_init_request["privacy"]["att"] = att_status
 
             response = await client.post(
@@ -117,10 +130,14 @@ class TestClientEvent:
     """Tests for POST /api/v1/client/event endpoint."""
 
     @pytest.mark.anyio
-    async def test_event_returns_empty_object(self, client, valid_init_request, valid_event_request):
+    async def test_event_returns_empty_object(
+        self, client, valid_init_request, valid_event_request
+    ):
         """Event endpoint returns empty JSON object."""
         # First create client via init
-        valid_init_request["ids"]["internal_id"] = valid_event_request["ids"]["internal_id"]
+        valid_init_request["ids"]["internal_id"] = valid_event_request["ids"][
+            "internal_id"
+        ]
         await client.post(
             "/api/v1/client/init",
             json=valid_init_request,
@@ -138,10 +155,14 @@ class TestClientEvent:
         assert response.json() == {}
 
     @pytest.mark.anyio
-    async def test_event_with_props(self, client, valid_init_request, valid_event_request_with_props):
+    async def test_event_with_props(
+        self, client, valid_init_request, valid_event_request_with_props
+    ):
         """Event with properties is recorded correctly."""
         # First create client via init
-        valid_init_request["ids"]["internal_id"] = valid_event_request_with_props["ids"]["internal_id"]
+        valid_init_request["ids"]["internal_id"] = valid_event_request_with_props[
+            "ids"
+        ]["internal_id"]
         await client.post(
             "/api/v1/client/init",
             json=valid_init_request,
@@ -194,7 +215,9 @@ class TestClientEvent:
         assert response.status_code == 422
 
     @pytest.mark.anyio
-    async def test_event_various_names(self, client, valid_init_request, valid_event_request):
+    async def test_event_various_names(
+        self, client, valid_init_request, valid_event_request
+    ):
         """Various event names are accepted."""
         event_names = [
             "rate_sheet_shown",
@@ -207,7 +230,9 @@ class TestClientEvent:
         ]
 
         # Create client first
-        valid_init_request["ids"]["internal_id"] = valid_event_request["ids"]["internal_id"]
+        valid_init_request["ids"]["internal_id"] = valid_event_request["ids"][
+            "internal_id"
+        ]
         await client.post(
             "/api/v1/client/init",
             json=valid_init_request,
