@@ -1,5 +1,5 @@
 from starlette.requests import Request
-from starlette_admin import EnumField, HasOne, IntegerField, StringField
+from starlette_admin import BooleanField, EnumField, HasOne, IntegerField, StringField
 from starlette_admin.contrib.sqlmodel import ModelView
 
 from app.schemas.common import ATTStatus
@@ -50,6 +50,11 @@ class ClientView(ModelView):
         ),
         StringField(
             "push_token", label="Push Token", help_text="Токен для Push-уведомлений"
+        ),
+        BooleanField(
+            "push_enabled",
+            label="Push Enabled",
+            help_text="Разрешены ли Push-уведомления",
         ),
         StringField(
             "first_seen_at",

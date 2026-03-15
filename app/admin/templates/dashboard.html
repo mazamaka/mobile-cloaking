@@ -732,6 +732,15 @@
       <div class="kpi-content">
         <div class="kpi-value" id="kpi-clients">-</div>
         <div class="kpi-label">Clients</div>
+        <div class="kpi-meta" id="kpi-clients-meta"></div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);"><i class="fas fa-chart-bar"></i></div>
+      <div class="kpi-content">
+        <div class="kpi-value" id="kpi-events">-</div>
+        <div class="kpi-label">Events Today</div>
+        <div class="kpi-meta" id="kpi-events-meta"></div>
       </div>
     </div>
   </div>
@@ -758,6 +767,9 @@
           <button class="quick-action-btn" onclick="openModal('geo')">
             <i class="fas fa-globe"></i> Geo
           </button>
+          <a href="/api/v1/dashboard/push-tokens/export" class="quick-action-btn" style="text-decoration: none;">
+            <i class="fas fa-download"></i> Push CSV
+          </a>
         </div>
 
         <!-- Create Link Form -->
@@ -1174,8 +1186,12 @@ function showToast(message, type = 'info') {
 // Load stats
 async function loadStats() {
   try {
-    const res = await fetch(`${API_BASE}/stats`);
+    const [res, evRes] = await Promise.all([
+      fetch(`${API_BASE}/stats`),
+      fetch(`${API_BASE}/events-stats`)
+    ]);
     const data = await res.json();
+    const evData = await evRes.json();
 
     document.getElementById('kpi-apps').textContent = data.apps.total;
     document.getElementById('kpi-apps-meta').textContent =
@@ -1192,6 +1208,12 @@ async function loadStats() {
       `${data.links.total} total`;
 
     document.getElementById('kpi-clients').textContent = data.clients.total;
+    document.getElementById('kpi-clients-meta').textContent =
+      `${evData.clients.new_today} today / ${evData.clients.with_push} with push`;
+
+    document.getElementById('kpi-events').textContent = evData.events.today;
+    document.getElementById('kpi-events-meta').textContent =
+      `${evData.events.week} this week / ${evData.events.total} total`;
   } catch (e) {
     console.error('Failed to load stats:', e);
   }

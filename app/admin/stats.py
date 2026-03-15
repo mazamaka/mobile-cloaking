@@ -317,3 +317,88 @@ async def create_geo(
     session.add(geo)
     await session.flush()
     return {"success": True, "id": geo.id, "code": geo.code}
+
+
+async def get_events_stats(session: AsyncSession) -> dict:
+    """Get events statistics for dashboard."""
+    from datetime import UTC, datetime, timedelta
+
+    from app.table.event.model import Event
+
+    now = datetime.now(UTC)
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    week_ago = now - timedelta(days=7)
+    month_ago = now - timedelta(days=30)
+
+    events_today = (
+        await session.scalar(
+            select(func.count(Event.id)).where(Event.received_at >= today_start)
+        )
+        or 0
+    )
+
+    events_week = (
+        await session.scalar(
+            select(func.count(Event.id)).where(Event.received_at >= week_ago)
+        )
+        or 0
+    )
+
+    events_month = (
+        await session.scalar(
+            select(func.count(Event.id)).where(Event.received_at >= month_ago)
+        )
+        or 0
+    )
+
+    events_total = await session.scalar(select(func.count(Event.id))) or 0
+
+    # Top events by name
+    top_events_stmt = (
+        select(Event.name, func.count(Event.id).label("count"))
+        .where(Event.received_at >= week_ago)
+        .group_by(Event.name)
+        .order_by(func.count(Event.id).desc())
+        .limit(5)
+    )
+    result = await session.execute(top_events_stmt)
+    top_events = [{"name": row[0], "count": row[1]} for row in result.all()]
+
+    # Clients stats
+    clients_today = (
+        await session.scalar(
+            select(func.count(Client.id)).where(Client.first_seen_at >= today_start)
+        )
+        or 0
+    )
+
+    clients_week = (
+        await session.scalar(
+            select(func.count(Client.id)).where(Client.first_seen_at >= week_ago)
+        )
+        or 0
+    )
+
+    clients_with_push = (
+        await session.scalar(
+            select(func.count(Client.id)).where(
+                Client.push_token.isnot(None)  # type: ignore[union-attr]
+            )
+        )
+        or 0
+    )
+
+    return {
+        "events": {
+            "today": events_today,
+            "week": events_week,
+            "month": events_month,
+            "total": events_total,
+            "top": top_events,
+        },
+        "clients": {
+            "new_today": clients_today,
+            "new_week": clients_week,
+            "with_push": clients_with_push,
+        },
+    }

@@ -196,3 +196,57 @@ async def create_new_geo(
     except Exception as e:
         await session.rollback()
         return {"success": False, "error": str(e)}
+
+
+@router.get("/events-stats")
+async def get_events_statistics(session: AsyncSession = Depends(get_db)):
+    """Get events statistics for dashboard."""
+    return await stats.get_events_stats(session)
+
+
+@router.get("/push-tokens/export")
+async def export_push_tokens(
+    app_id: int | None = None,
+    session: AsyncSession = Depends(get_db),
+):
+    """Export push tokens as CSV."""
+    import csv
+    import io
+
+    from sqlalchemy import select
+
+    from app.table.app.model import App
+    from app.table.client.model import Client
+
+    stmt = (
+        select(
+            Client.internal_id,
+            Client.push_token,
+            Client.region,
+            Client.app_version,
+            App.bundle_id,
+        )
+        .join(App, Client.app_id == App.id)
+        .where(Client.push_token.isnot(None))  # type: ignore[union-attr]
+    )
+    if app_id:
+        stmt = stmt.where(Client.app_id == app_id)
+
+    result = await session.execute(stmt)
+    rows = result.all()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["internal_id", "push_token", "region", "app_version", "bundle_id"])
+    for row in rows:
+        writer.writerow(row)
+
+    output.seek(0)
+
+    from fastapi.responses import StreamingResponse
+
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=push_tokens.csv"},
+    )

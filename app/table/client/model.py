@@ -41,6 +41,7 @@ class Client(SQLModel, table=True):
 
     # Push
     push_token: str | None = Field(default=None)
+    push_enabled: bool = Field(default=False)
 
     # Activity
     first_seen_at: datetime = Field(default_factory=lambda: datetime.now(UTC))

@@ -59,6 +59,14 @@ class EventService:
         self.session.add(event)
         await self.session.flush()
 
+        # Update push_enabled based on push prompt events
+        if data.event.name == "push_prompt_accepted" and client:
+            client.push_enabled = True
+            await self.session.flush()
+        elif data.event.name == "push_prompt_declined" and client:
+            client.push_enabled = False
+            await self.session.flush()
+
         logger.info(
             f"Event saved: {data.event.name} from client={data.ids.internal_id}"
         )
