@@ -638,6 +638,28 @@ textarea.form-control {
     border: 1px solid var(--lux-border) !important;
 }
 
+/* ---- Relationship badges / pills (white by default) ---- */
+.badge.bg-light,
+.badge.text-dark,
+a > .badge,
+td .badge,
+td a.badge,
+.badge.bg-white,
+.badge.badge-light {
+    background-color: var(--lux-bg-card-alt) !important;
+    color: var(--lux-gold) !important;
+    border: 1px solid var(--lux-border) !important;
+}
+
+/* Any remaining white/light badges */
+.badge[class*="bg-light"],
+.badge[style*="background"],
+span.badge:not(.bg-primary):not(.bg-success):not(.bg-danger):not(.bg-warning):not(.bg-info):not(.bg-secondary) {
+    background-color: var(--lux-bg-card-alt) !important;
+    color: var(--lux-gold) !important;
+    border: 1px solid var(--lux-border) !important;
+}
+
 /* ---- Alerts ---- */
 .alert {
     border-radius: var(--lux-radius-sm) !important;
