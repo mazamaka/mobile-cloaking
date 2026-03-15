@@ -13,16 +13,17 @@ APP_CACHE_TTL = 300  # 5 minutes
 class RedisCache:
     """Async Redis cache for frequently accessed data."""
 
-    def __init__(self, url: str) -> None:
+    def __init__(self) -> None:
         self._redis: Redis | None = None
-        self._url = url
+        self._url: str = ""
 
-    async def connect(self) -> None:
-        """Connect to Redis."""
+    async def connect(self, url: str) -> None:
+        """Connect to Redis with given URL."""
+        self._url = url
         try:
             self._redis = Redis.from_url(self._url, decode_responses=True)
             await self._redis.ping()
-            logger.info("Redis connected")
+            logger.info(f"Redis connected: {self._url}")
         except Exception as e:
             logger.warning(f"Redis connection failed: {e}. Cache disabled.")
             self._redis = None
@@ -93,11 +94,5 @@ class RedisCache:
             pass
 
 
-# Global instance — URL set in lifespan via init()
-cache = RedisCache(url="redis://localhost:6379/0")
-
-
-def init_cache(url: str) -> None:
-    """Re-initialize cache with correct URL from settings."""
-    global cache  # noqa: PLW0603
-    cache = RedisCache(url=url)
+# Global singleton — call cache.connect(url) in lifespan
+cache = RedisCache()

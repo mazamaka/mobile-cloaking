@@ -13,7 +13,7 @@ from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from app.admin.panel import setup_admin
 from app.api.v1.router import router as api_v1_router
-from app.cache.redis import cache, init_cache
+from app.cache.redis import cache
 from app.db.database import db
 from app.ratelimit import limiter
 from app.utils.logger import logger
@@ -25,8 +25,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Manage application startup and shutdown lifecycle."""
     logger.info("Starting application...")
     logger.info(f"Debug mode: {SETTINGS.debug}")
-    init_cache(SETTINGS.redis_url)
-    await cache.connect()
+    await cache.connect(SETTINGS.redis_url)
     yield
     logger.info("Shutting down application...")
     await cache.close()
