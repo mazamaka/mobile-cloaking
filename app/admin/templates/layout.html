@@ -243,6 +243,21 @@ header.navbar .avatar {
     background-color: rgba(200, 168, 78, 0.1) !important;
 }
 
+/* ---- Force ALL selects and inputs dark ---- */
+select,
+input,
+textarea {
+    background-color: var(--lux-bg-input) !important;
+    border: 1px solid var(--lux-border-input) !important;
+    color: var(--lux-text) !important;
+    border-radius: var(--lux-radius-sm) !important;
+}
+
+select option {
+    background-color: var(--lux-bg-card) !important;
+    color: var(--lux-text) !important;
+}
+
 /* DataTables specific */
 .dataTables_wrapper .dataTables_length label,
 .dataTables_wrapper .dataTables_filter label,
@@ -318,6 +333,11 @@ table.dataTable.dtr-inline.collapsed > tbody > tr > th.dtr-control:before {
     font-weight: 500 !important;
 }
 
+.form-text,
+.form-hint {
+    color: var(--lux-text-dim) !important;
+}
+
 .form-check-input {
     background-color: var(--lux-bg-input) !important;
     border-color: var(--lux-border-input) !important;
@@ -332,8 +352,16 @@ table.dataTable.dtr-inline.collapsed > tbody > tr > th.dtr-control:before {
     color: var(--lux-text) !important;
 }
 
+.form-switch .form-check-input {
+    background-color: #3a3a4e !important;
+    border-color: #3a3a4e !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23999'/%3e%3c/svg%3e") !important;
+}
+
 .form-switch .form-check-input:checked {
     background-color: var(--lux-gold) !important;
+    border-color: var(--lux-gold) !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23000'/%3e%3c/svg%3e") !important;
 }
 
 textarea.form-control {
@@ -949,6 +977,75 @@ pre {
     --tblr-body-bg: var(--lux-bg) !important;
     --tblr-card-bg: var(--lux-bg-card) !important;
     --tblr-border-color: var(--lux-border) !important;
+}
+
+/* ---- Number input spinners ---- */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+/* ---- Custom select arrow ---- */
+.form-select,
+select.form-select,
+select.form-input {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8.825L1.175 4 2.238 2.938 6 6.7l3.763-3.763L10.825 4z'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 0.75rem center !important;
+    background-size: 12px !important;
+    padding-right: 2rem !important;
+}
+
+/* ---- Sidebar polish ---- */
+.navbar-vertical .navbar-nav .nav-link {
+    font-size: 0.875rem !important;
+    letter-spacing: 0.01em !important;
+}
+
+.navbar-vertical .navbar-nav .nav-link .icon,
+.navbar-vertical .navbar-nav .nav-link i {
+    width: 20px !important;
+    text-align: center !important;
+    margin-right: 0.5rem !important;
+    font-size: 1rem !important;
+    opacity: 0.7 !important;
+}
+
+.navbar-vertical .navbar-nav .nav-link.active .icon,
+.navbar-vertical .navbar-nav .nav-link.active i,
+.navbar-vertical .navbar-nav .nav-item.active > .nav-link .icon,
+.navbar-vertical .navbar-nav .nav-item.active > .nav-link i {
+    opacity: 1 !important;
+}
+
+/* ---- Top header bar thin line ---- */
+header.navbar {
+    min-height: 48px !important;
+    padding: 0 1rem !important;
+}
+
+/* ---- Username in header ---- */
+header.navbar .nav-link .ps-2 div {
+    color: var(--lux-text) !important;
+    font-weight: 500 !important;
+    font-size: 0.875rem !important;
+}
+
+/* ---- Focus ring on all interactive elements ---- */
+*:focus-visible {
+    outline: 2px solid var(--lux-gold) !important;
+    outline-offset: 2px !important;
+}
+
+/* ---- Smooth transitions globally ---- */
+.card, .btn, .nav-link, .form-control, .form-select, .badge, .page-link {
+    transition: all 0.2s ease !important;
 }
 </style>
 {% endblock %}
