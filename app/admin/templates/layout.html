@@ -1211,6 +1211,96 @@ header.navbar .nav-link .ps-2 div {
     color: var(--lux-text-muted) !important;
 }
 
+/* ---- DataTables button dropdowns (Export, Show/Hide columns) ---- */
+.dt-button-collection,
+.dt-button-collection .dropdown-menu,
+div.dt-button-collection {
+    background-color: var(--lux-bg-card) !important;
+    border: 1px solid var(--lux-border) !important;
+    border-radius: var(--lux-radius) !important;
+    box-shadow: var(--lux-shadow-lg) !important;
+}
+
+.dt-button-collection .dt-button,
+.dt-button-collection button.dt-button,
+.dt-button-collection a.dt-button {
+    background-color: transparent !important;
+    border: none !important;
+    color: var(--lux-text) !important;
+    padding: 0.5rem 1rem !important;
+}
+
+.dt-button-collection .dt-button:hover,
+.dt-button-collection button.dt-button:hover,
+.dt-button-collection a.dt-button:hover {
+    background-color: rgba(200, 168, 78, 0.1) !important;
+    color: var(--lux-gold) !important;
+}
+
+.dt-button-collection .dt-button.active,
+.dt-button-collection button.dt-button.active {
+    background-color: rgba(200, 168, 78, 0.15) !important;
+    color: var(--lux-gold) !important;
+}
+
+/* ---- SearchBuilder (Filter panel) ---- */
+.dtsb-searchBuilder,
+.dtsb-group,
+.dtsb-criteria {
+    background-color: var(--lux-bg-card) !important;
+    border-color: var(--lux-border) !important;
+    color: var(--lux-text) !important;
+}
+
+.dtsb-searchBuilder {
+    border: 1px solid var(--lux-border) !important;
+    border-radius: var(--lux-radius) !important;
+    padding: 1rem !important;
+}
+
+.dtsb-data,
+.dtsb-condition,
+.dtsb-value,
+.dtsb-select,
+.dtsb-input {
+    background-color: var(--lux-bg-input) !important;
+    border: 1px solid var(--lux-border-input) !important;
+    color: var(--lux-text) !important;
+    border-radius: 6px !important;
+}
+
+.dtsb-data option,
+.dtsb-condition option,
+.dtsb-value option {
+    background-color: var(--lux-bg-card) !important;
+    color: var(--lux-text) !important;
+}
+
+.dtsb-button,
+.dtsb-delete,
+.dtsb-clearAll,
+.dtsb-add,
+.dtsb-logic {
+    background-color: var(--lux-bg-card-alt) !important;
+    border: 1px solid var(--lux-border) !important;
+    color: var(--lux-text-muted) !important;
+    border-radius: 6px !important;
+}
+
+.dtsb-button:hover,
+.dtsb-delete:hover,
+.dtsb-add:hover {
+    border-color: var(--lux-gold) !important;
+    color: var(--lux-gold) !important;
+}
+
+.dtsb-logic {
+    background-color: var(--lux-gold) !important;
+    color: #000 !important;
+    border-color: var(--lux-gold) !important;
+    font-weight: 600 !important;
+}
+
 /* ---- Action column icons styling ---- */
 td .btn-link,
 td a[data-url] {
