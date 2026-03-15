@@ -63,10 +63,13 @@ h1, h2, h3, h4, h5, h6,
 
 .page-wrapper {
     background-color: var(--lux-bg) !important;
+    padding-top: 0 !important;
+    margin-top: 0 !important;
 }
 
 .page-body {
     background-color: var(--lux-bg) !important;
+    padding-top: 0.5rem !important;
 }
 
 .page-header {
@@ -76,8 +79,15 @@ h1, h2, h3, h4, h5, h6,
     min-height: 0 !important;
 }
 
-.page-header:empty {
+.page-header:empty,
+.page-header.d-print-none:not(:has(*)) {
     display: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.navbar ~ .page-wrapper {
+    padding-top: 0 !important;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -1016,6 +1026,11 @@ span.badge:not(.bg-primary):not(.bg-success):not(.bg-danger):not(.bg-warning):no
 .container-fluid,
 .container-xl {
     color: var(--lux-text) !important;
+}
+
+.page-wrapper > .container-fluid:first-child {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
 }
 
 /* ---- Status Indicators ---- */
