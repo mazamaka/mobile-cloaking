@@ -45,6 +45,9 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    networks:
+      - default
+      - proxy
     restart: unless-stopped
 
 volumes:
@@ -53,3 +56,5 @@ volumes:
 networks:
   default:
     name: cloaking-net
+  proxy:
+    external: true
