@@ -25,15 +25,21 @@ class Link(SQLModel, table=True):
 
     # App relation
     app_id: int = Field(foreign_key="apps.id", index=True)
-    app: Optional["App"] = Relationship(back_populates="links")
+    app: Optional["App"] = Relationship(
+        back_populates="links", sa_relationship_kwargs={"lazy": "selectin"}
+    )
 
     # Offer relation
     offer_id: int = Field(foreign_key="offers.id", index=True)
-    offer: Optional["Offer"] = Relationship(back_populates="links")
+    offer: Optional["Offer"] = Relationship(
+        back_populates="links", sa_relationship_kwargs={"lazy": "selectin"}
+    )
 
     # Geo relation
     geo_id: int = Field(foreign_key="geos.id", index=True)
-    geo: Optional["Geo"] = Relationship(back_populates="links")
+    geo: Optional["Geo"] = Relationship(
+        back_populates="links", sa_relationship_kwargs={"lazy": "selectin"}
+    )
 
     # Override priority/weight per link (nullable = use offer defaults)
     priority: int | None = Field(default=None)

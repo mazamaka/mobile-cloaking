@@ -33,8 +33,12 @@ class Group(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     # Relationships
-    apps: list["App"] = Relationship(back_populates="group")
-    offers: list["Offer"] = Relationship(back_populates="group")
+    apps: list["App"] = Relationship(
+        back_populates="group", sa_relationship_kwargs={"lazy": "selectin"}
+    )
+    offers: list["Offer"] = Relationship(
+        back_populates="group", sa_relationship_kwargs={"lazy": "selectin"}
+    )
 
     def __admin_repr__(self, request: object) -> str:
         """Return 'Name (type)' for admin panel."""

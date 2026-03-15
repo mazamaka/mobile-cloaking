@@ -27,7 +27,9 @@ class Offer(SQLModel, table=True):
 
     # Group
     group_id: int | None = Field(default=None, foreign_key="groups.id", index=True)
-    group: Optional["Group"] = Relationship(back_populates="offers")
+    group: Optional["Group"] = Relationship(
+        back_populates="offers", sa_relationship_kwargs={"lazy": "selectin"}
+    )
 
     # Status
     is_active: bool = Field(default=True, index=True)
@@ -37,7 +39,9 @@ class Offer(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     # Relationships
-    links: list["Link"] = Relationship(back_populates="offer")
+    links: list["Link"] = Relationship(
+        back_populates="offer", sa_relationship_kwargs={"lazy": "selectin"}
+    )
 
     def __admin_repr__(self, request: object) -> str:
         """Return human-readable representation for admin panel."""

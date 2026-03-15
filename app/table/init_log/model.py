@@ -20,7 +20,9 @@ class InitLog(SQLModel, table=True):
 
     # Client relation
     client_id: int = Field(foreign_key="clients.id", index=True)
-    client: Optional["Client"] = Relationship()
+    client: Optional["Client"] = Relationship(
+        sa_relationship_kwargs={"lazy": "selectin"}
+    )
 
     # Request data
     request_headers: dict[str, Any] = Field(sa_column=Column(JSONB))

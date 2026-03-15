@@ -22,7 +22,7 @@ class Client(SQLModel, table=True):
 
     # App relation
     app_id: int = Field(foreign_key="apps.id", index=True)
-    app: Optional["App"] = Relationship()
+    app: Optional["App"] = Relationship(sa_relationship_kwargs={"lazy": "selectin"})
 
     # App version
     app_version: str

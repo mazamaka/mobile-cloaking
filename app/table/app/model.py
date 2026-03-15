@@ -26,7 +26,9 @@ class App(SQLModel, table=True):
 
     # Group
     group_id: int | None = Field(default=None, foreign_key="groups.id", index=True)
-    group: Optional["Group"] = Relationship(back_populates="apps")
+    group: Optional["Group"] = Relationship(
+        back_populates="apps", sa_relationship_kwargs={"lazy": "selectin"}
+    )
 
     # Mode - stored as VARCHAR in DB
     mode: AppMode = Field(
@@ -55,7 +57,9 @@ class App(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     # Relationships
-    links: list["Link"] = Relationship(back_populates="app")
+    links: list["Link"] = Relationship(
+        back_populates="app", sa_relationship_kwargs={"lazy": "selectin"}
+    )
 
     def __admin_repr__(self, request: object) -> str:
         """Return human-readable representation for admin panel."""

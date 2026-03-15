@@ -37,7 +37,9 @@ class Geo(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     # Relationships
-    links: list["Link"] = Relationship(back_populates="geo")
+    links: list["Link"] = Relationship(
+        back_populates="geo", sa_relationship_kwargs={"lazy": "selectin"}
+    )
 
     def __admin_repr__(self, request: object) -> str:
         """Return 'CODE (Name)' for admin panel."""

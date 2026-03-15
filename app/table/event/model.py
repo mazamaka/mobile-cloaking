@@ -21,10 +21,12 @@ class Event(SQLModel, table=True):
 
     # Relations
     client_id: int = Field(foreign_key="clients.id", index=True)
-    client: Optional["Client"] = Relationship()
+    client: Optional["Client"] = Relationship(
+        sa_relationship_kwargs={"lazy": "selectin"}
+    )
 
     app_id: int = Field(foreign_key="apps.id", index=True)
-    app: Optional["App"] = Relationship()
+    app: Optional["App"] = Relationship(sa_relationship_kwargs={"lazy": "selectin"})
 
     # Event data
     name: str = Field(index=True)
