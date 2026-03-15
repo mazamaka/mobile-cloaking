@@ -56,8 +56,8 @@ API requires no auth. Client is identified by `internal_id` (UUID from Keychain)
         """,
         version="1.0.0",
         lifespan=lifespan,
-        docs_url="/docs" if SETTINGS.debug else None,
-        redoc_url="/redoc" if SETTINGS.debug else None,
+        docs_url="/docs",
+        redoc_url="/redoc",
         openapi_tags=[
             {
                 "name": "client",

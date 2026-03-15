@@ -1267,14 +1267,7 @@ header.navbar .nav-link .ps-2 div {
     transition: all 0.2s ease !important;
 }
 
-/* ---- Sidebar dropdown closed by default (only open when active) ---- */
-.navbar-vertical .nav-item.dropdown .dropdown-menu.show {
-    display: none;
-}
-.navbar-vertical .nav-item.dropdown.active .dropdown-menu.show,
-.navbar-vertical .nav-item.dropdown .dropdown-toggle[aria-expanded="true"] + .dropdown-menu {
-    display: block;
-}
+/* ---- Sidebar dropdown: normal behavior ---- */
 
 /* ---- Table action icons (view/edit/delete) ---- */
 .table td a i.fa,
@@ -1682,4 +1675,15 @@ td a[data-url]:hover {
             </div>
         </div>
     </div>
+    <script>
+    // Close Documentation dropdown on page load (keep it collapsed by default)
+    document.querySelectorAll('.navbar-vertical .nav-item.dropdown').forEach(function(item) {
+        var toggle = item.querySelector('.dropdown-toggle');
+        var menu = item.querySelector('.dropdown-menu');
+        if (toggle && menu && !item.classList.contains('active')) {
+            menu.classList.remove('show');
+            toggle.setAttribute('aria-expanded', 'false');
+        }
+    });
+    </script>
 {% endblock %}
