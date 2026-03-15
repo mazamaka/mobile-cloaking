@@ -42,6 +42,41 @@ class LinkView(ModelView):
             label="Weight Override",
             help_text="Переопределение веса для A/B (пусто = использовать из оффера)",
         ),
+        StringField(
+            "language",
+            label="Language Filter",
+            help_text="Фильтр по языку устройства (en, ru). Пусто = любой язык",
+        ),
+        StringField(
+            "min_version",
+            label="Min Version",
+            help_text="Минимальная версия приложения для этого линка (пусто = любая)",
+        ),
+        StringField(
+            "max_version",
+            label="Max Version",
+            help_text="Максимальная версия приложения для этого линка (пусто = любая)",
+        ),
+        StringField(
+            "att_status",
+            label="ATT Status Filter",
+            help_text="Фильтр по ATT статусу (authorized, denied, notDetermined). Пусто = любой",
+        ),
+        IntegerField(
+            "rate_delay_sec",
+            label="Rate Delay Override",
+            help_text="Переопределение задержки Rate App (пусто = из приложения)",
+        ),
+        IntegerField(
+            "push_delay_sec",
+            label="Push Delay Override",
+            help_text="Переопределение задержки Push (пусто = из приложения)",
+        ),
+        StringField(
+            "icon_name",
+            label="Icon Override",
+            help_text="Переопределение иконки (пусто = из приложения)",
+        ),
         BooleanField(
             "is_active",
             label="Active",
@@ -52,62 +87,30 @@ class LinkView(ModelView):
         ),
     ]
 
-    exclude_fields_from_list = ["priority", "weight", "created_at"]
+    exclude_fields_from_list = [
+        "priority",
+        "weight",
+        "language",
+        "min_version",
+        "max_version",
+        "att_status",
+        "rate_delay_sec",
+        "push_delay_sec",
+        "icon_name",
+        "created_at",
+    ]
     exclude_fields_from_create = ["id", "created_at"]
     exclude_fields_from_edit = ["id", "created_at"]
 
-    async def _validate_geo_uniqueness(
-        self,
-        request: Request,
-        app_id: int,
-        geo_id: int,
-        exclude_id: int | None = None,
-    ) -> None:
-        """Validate that geo is not already assigned to another offer in this app."""
-        from sqlalchemy import select
-
-        from app.table.app.model import App
-        from app.table.geo.model import Geo
-
-        session = request.state.session
-
-        if not await session.get(App, app_id):
-            raise FormValidationError({"app": "App not found"})
-
-        # Check if geo already assigned in this app
-        stmt = select(Link).where(
-            Link.app_id == app_id,
-            Link.geo_id == geo_id,
-        )
-        if exclude_id:
-            stmt = stmt.where(Link.id != exclude_id)
-
-        result = await session.execute(stmt)
-        if result.scalar_one_or_none():
-            geo = await session.get(Geo, geo_id)
-            raise FormValidationError(
-                {
-                    "geo": f"Geo '{geo.code if geo else geo_id}' already assigned to another offer"
-                }
-            )
-
     async def before_create(self, request: Request, data: dict, obj: Link) -> None:
-        """Validate uniqueness before create."""
+        """Validate app exists before create."""
+        from app.table.app.model import App
+
         app_id = data.get("app")
-        geo_id = data.get("geo")
-
-        if app_id and geo_id:
-            await self._validate_geo_uniqueness(request, app_id, geo_id)
-
-    async def before_edit(self, request: Request, data: dict, obj: Link) -> None:
-        """Validate uniqueness when editing."""
-        app_id = data.get("app", obj.app_id)
-        geo_id = data.get("geo", obj.geo_id)
-
-        if app_id and geo_id:
-            await self._validate_geo_uniqueness(
-                request, app_id, geo_id, exclude_id=obj.id
-            )
+        if app_id:
+            session = request.state.session
+            if not await session.get(App, app_id):
+                raise FormValidationError({"app": "App not found"})
 
 
 link_view = LinkView(Link, icon="fas fa-link")

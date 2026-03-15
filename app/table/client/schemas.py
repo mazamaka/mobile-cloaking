@@ -14,11 +14,14 @@ class AppInfo(BaseModel):
 
     bundle_id: str = Field(
         ...,
+        max_length=255,
+        pattern=r"^[a-zA-Z0-9.\-]+$",
         description="Bundle ID (e.g., com.company.app)",
         examples=["com.example.game"],
     )
     version: str = Field(
         ...,
+        max_length=20,
         description="App version string",
         examples=["1.0.0", "2.1.3"],
     )
@@ -29,16 +32,20 @@ class DeviceInfo(BaseModel):
 
     language: str = Field(
         ...,
+        max_length=10,
         description="Device language in ISO format (e.g., en-US, ru-RU)",
         examples=["en-US", "ru-RU", "en-EE"],
     )
     timezone: str = Field(
         ...,
+        max_length=50,
         description="Device timezone identifier",
         examples=["Europe/Moscow", "Europe/Budapest", "America/New_York"],
     )
     region: str = Field(
         ...,
+        min_length=2,
+        max_length=10,
         description="Device region (ISO 3166-1 alpha-2)",
         examples=["RU", "EE", "HU", "US"],
     )
@@ -61,6 +68,8 @@ class IdsInfo(BaseModel):
 
     internal_id: str = Field(
         ...,
+        max_length=36,
+        pattern=r"^[0-9a-fA-F\-]{36}$",
         description="Unique device ID (UUID v4 stored in Keychain)",
         examples=["550e8400-e29b-41d4-a716-446655440000"],
     )
@@ -169,4 +178,8 @@ class InitResponse(BaseModel):
     prompts: PromptsConfig = Field(..., description="Prompt timing configuration")
     update: UpdateConfig | None = Field(
         default=None, description="Update info (if available)"
+    )
+    icon: str | None = Field(
+        default=None,
+        description="Alternative icon name (e.g., icon_white, icon_dark). Null = don't change.",
     )

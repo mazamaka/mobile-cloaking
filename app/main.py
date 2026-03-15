@@ -6,11 +6,16 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from app.admin.panel import setup_admin
 from app.api.v1.router import router as api_v1_router
+from app.cache.redis import cache, init_cache
 from app.db.database import db
+from app.ratelimit import limiter
 from app.utils.logger import logger
 from config import SETTINGS
 
@@ -20,8 +25,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Manage application startup and shutdown lifecycle."""
     logger.info("Starting application...")
     logger.info(f"Debug mode: {SETTINGS.debug}")
+    init_cache(SETTINGS.redis_url)
+    await cache.connect()
     yield
     logger.info("Shutting down application...")
+    await cache.close()
     await db.close()
 
 
@@ -63,6 +71,11 @@ API requires no auth. Client is identified by `internal_id` (UUID from Keychain)
         ],
     )
 
+    # Rate limiting
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+    app.add_middleware(SlowAPIMiddleware)
+
     # Trust proxy headers (X-Forwarded-Proto, X-Forwarded-For)
     trusted = (
         SETTINGS.trusted_hosts.split(",") if SETTINGS.trusted_hosts != "*" else ["*"]
@@ -75,7 +88,13 @@ API requires no auth. Client is identified by `internal_id` (UUID from Keychain)
         allow_origins=["*"],
         allow_credentials=False,
         allow_methods=["GET", "POST", "OPTIONS"],
-        allow_headers=["X-Schema", "X-App-Bundle-Id", "X-App-Version", "Content-Type"],
+        allow_headers=[
+            "X-Schema",
+            "X-App-Bundle-Id",
+            "X-App-Version",
+            "X-API-Key",
+            "Content-Type",
+        ],
     )
 
     @app.get("/", include_in_schema=False)

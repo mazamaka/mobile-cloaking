@@ -46,6 +46,13 @@ class Settings(BaseSettings):
     admin_password: str
     auth_secret: str  # Must be at least 32 chars in production
 
+    # Database pool
+    db_pool_size: int = 10
+    db_max_overflow: int = 20
+
+    # Redis
+    redis_url: str = "redis://localhost:6379/0"
+
     # Proxy settings
     trusted_hosts: str = "*"  # Comma-separated list or "*" for all
 

@@ -3,7 +3,7 @@
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import UniqueConstraint
+from sqlalchemy import Column, String
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
@@ -20,7 +20,6 @@ class Link(SQLModel, table=True):
     """
 
     __tablename__ = "links"
-    __table_args__ = (UniqueConstraint("app_id", "geo_id", name="uq_link_app_geo"),)
 
     id: int | None = Field(default=None, primary_key=True)
 
@@ -39,6 +38,19 @@ class Link(SQLModel, table=True):
     # Override priority/weight per link (nullable = use offer defaults)
     priority: int | None = Field(default=None)
     weight: int | None = Field(default=None)
+
+    # Routing filters (null = any value matches)
+    language: str | None = Field(default=None)
+    min_version: str | None = Field(default=None)
+    max_version: str | None = Field(default=None)
+    att_status: str | None = Field(
+        default=None, sa_column=Column(String(20), nullable=True)
+    )
+
+    # Per-link overrides (null = use app defaults)
+    rate_delay_sec: int | None = Field(default=None)
+    push_delay_sec: int | None = Field(default=None)
+    icon_name: str | None = Field(default=None)
 
     # Status
     is_active: bool = Field(default=True, index=True)

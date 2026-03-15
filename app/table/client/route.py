@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.deps import RequestHeaders, get_db, get_headers
+from app.ratelimit import limiter
 from app.table.client.schemas import InitRequest, InitResponse
 from app.table.client.service import InitService
 
@@ -35,6 +36,7 @@ router = APIRouter(prefix="/client", tags=["client"])
 | `X-Schema` | Да | Версия схемы API (сейчас: `1`) |
 | `X-App-Bundle-Id` | Нет | Bundle ID приложения (fallback) |
 | `X-App-Version` | Нет | Версия приложения (fallback) |
+| `X-API-Key` | Нет | Ключ авторизации (если настроен) |
     """,
     response_model=InitResponse,
     responses={
@@ -58,6 +60,7 @@ router = APIRouter(prefix="/client", tags=["client"])
                                     "mode": "soft",
                                     "appstore_url": "itms-apps://itunes.apple.com/app/id123456789",
                                 },
+                                "icon": None,
                             },
                         },
                         "casino": {
@@ -70,20 +73,26 @@ router = APIRouter(prefix="/client", tags=["client"])
                                     "push_delay_sec": 60,
                                 },
                                 "update": None,
+                                "icon": "icon_bonus",
                             },
                         },
                     }
                 }
             },
         },
+        401: {"description": "Неверный API ключ (X-API-Key)"},
+        404: {"description": "Приложение не найдено по bundle_id"},
         422: {"description": "Ошибка валидации — неверный формат данных"},
+        429: {"description": "Превышен лимит запросов"},
     },
 )
+@limiter.limit("60/minute")
 async def client_init(
+    request: Request,
     body: InitRequest,
     headers: RequestHeaders = Depends(get_headers),
     session: AsyncSession = Depends(get_db),
 ) -> InitResponse:
     """Инициализация клиента при запуске приложения."""
     service = InitService(session)
-    return await service.process_init(body)
+    return await service.process_init(body, api_key=headers.api_key)

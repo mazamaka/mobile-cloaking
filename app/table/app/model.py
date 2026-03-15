@@ -22,6 +22,7 @@ class App(SQLModel, table=True):
     bundle_id: str = Field(unique=True, index=True)
     apple_id: str | None = Field(default=None, index=True)
     name: str | None = Field(default=None)
+    api_key: str | None = Field(default=None, index=True)
 
     # Group
     group_id: int | None = Field(default=None, foreign_key="groups.id", index=True)
@@ -44,6 +45,9 @@ class App(SQLModel, table=True):
         default=None, sa_column=Column(String(10), nullable=True)
     )
     appstore_url: str | None = Field(default=None)
+
+    # Icon
+    icon_name: str | None = Field(default=None)
 
     # Meta
     is_active: bool = Field(default=True)

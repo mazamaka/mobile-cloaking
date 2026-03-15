@@ -41,6 +41,11 @@ class AppView(ModelView):
         StringField(
             "name", label="Name", help_text="Человекочитаемое название приложения"
         ),
+        StringField(
+            "api_key",
+            label="API Key",
+            help_text="Ключ авторизации для X-API-Key (пусто = без проверки)",
+        ),
         EnumField(
             "mode",
             enum=AppMode,
@@ -78,6 +83,11 @@ class AppView(ModelView):
             label="App Store URL",
             help_text="Ссылка на приложение в App Store",
         ),
+        StringField(
+            "icon_name",
+            label="Icon Name",
+            help_text="Имя альтернативной иконки (icon_white, icon_dark, icon_bonus). Пусто = не менять",
+        ),
         BooleanField(
             "is_active",
             label="Active",
@@ -99,7 +109,14 @@ class AppView(ModelView):
         ),
     ]
 
-    exclude_fields_from_list = ["appstore_url", "links", "created_at", "updated_at"]
+    exclude_fields_from_list = [
+        "api_key",
+        "appstore_url",
+        "icon_name",
+        "links",
+        "created_at",
+        "updated_at",
+    ]
     exclude_fields_from_create = ["id", "links", "created_at", "updated_at"]
     exclude_fields_from_edit = ["id", "links", "created_at", "updated_at"]
 

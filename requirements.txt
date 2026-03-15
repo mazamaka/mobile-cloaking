@@ -27,6 +27,10 @@ loguru>=0.7.2
 itsdangerous>=2.2.0
 python-multipart>=0.0.17
 
+# Cache & Rate limiting
+redis[hiredis]>=5.0.0
+slowapi>=0.1.9
+
 # Utils
 python-dateutil>=2.9.0
 httpx>=0.28.0

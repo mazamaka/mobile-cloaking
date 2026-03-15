@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.deps import RequestHeaders, get_db, get_headers
+from app.ratelimit import limiter
 from app.table.event.schemas import EventRequest, EventResponse
 from app.table.event.service import EventService
 
@@ -13,7 +14,7 @@ router = APIRouter(prefix="/client", tags=["client"])
     response_model=EventResponse,
     summary="Логирование события",
     description="""
-## 📊 Логирование событий от клиента
+## Логирование событий от клиента
 
 Эндпоинт для отправки аналитических событий с мобильного приложения.
 Используется для отслеживания взаимодействия пользователя с UI-элементами.
@@ -34,17 +35,15 @@ router = APIRouter(prefix="/client", tags=["client"])
 | `push_prompt_accepted` | Пользователь разрешил push |
 | `push_prompt_declined` | Пользователь отклонил push |
 
+#### Иконки
+| Событие | Описание |
+|---------|----------|
+| `icon_banner_shown` | Показан баннер смены иконки |
+| `icon_swipe_completed` | Иконка изменена |
+| `icon_banner_expired` | Баннер истёк |
+
 ### Поле `props`
 Дополнительные данные события в формате JSON-объекта.
-Например, для `rate_slider_completed` можно передать оценку:
-```json
-{
-  "props": {
-    "rating": 5,
-    "comment": "Great app!"
-  }
-}
-```
 
 ### Заголовки запроса
 | Header | Обязательный | Описание |
@@ -56,7 +55,7 @@ router = APIRouter(prefix="/client", tags=["client"])
 ### Важно
 - Поле `ts` — это Unix timestamp в **секундах** (время на устройстве)
 - События привязываются к клиенту по `internal_id`
-- Если клиент не найден — событие всё равно сохраняется
+- Неизвестные события сохраняются как есть
     """,
     responses={
         200: {
@@ -64,20 +63,17 @@ router = APIRouter(prefix="/client", tags=["client"])
             "content": {"application/json": {"example": {}}},
         },
         422: {"description": "Ошибка валидации — неверный формат данных"},
+        429: {"description": "Превышен лимит запросов"},
     },
 )
+@limiter.limit("120/minute")
 async def client_event(
+    request: Request,
     body: EventRequest,
     headers: RequestHeaders = Depends(get_headers),
     session: AsyncSession = Depends(get_db),
 ) -> EventResponse:
-    """
-    Логирование события от клиента.
-
-    Сохраняет событие в БД для аналитики.
-    Возвращает пустой объект при успехе.
-    """
+    """Логирование события от клиента."""
     service = EventService(session)
     await service.process_event(body)
-
     return EventResponse()

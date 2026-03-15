@@ -2,8 +2,9 @@
 
 from datetime import UTC, datetime
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql import Select
 
 from app.table.app.enums import AppMode
 from app.table.app.model import App
@@ -18,30 +19,37 @@ from app.table.geo.model import Geo
 from app.table.link.model import Link
 from app.table.offer.model import Offer
 from app.utils.logger import logger
-from config import SETTINGS
+from app.utils.version import check_update
 
 
 class InitService:
-    """Handle /client/init requests: find or create app/client, resolve offer."""
+    """Handle /client/init requests: find app/client, resolve offer."""
 
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def get_or_create_app(self, bundle_id: str) -> App:
-        """Get existing app by bundle_id or create a new one with defaults."""
+    async def get_app(self, bundle_id: str) -> App | None:
+        """Get app by bundle_id with Redis cache. Returns None if not found."""
+        from app.cache.redis import cache
+
+        # Try cache first
+        if cache.available:
+            cached = await cache.get_app_dict(bundle_id)
+            if cached:
+                stmt = select(App).where(App.id == cached["id"])
+                result = await self.session.execute(stmt)
+                return result.scalar_one_or_none()
+
+        # DB lookup
         stmt = select(App).where(App.bundle_id == bundle_id)
         result = await self.session.execute(stmt)
         app = result.scalar_one_or_none()
 
-        if not app:
-            app = App(
-                bundle_id=bundle_id,
-                rate_delay_sec=SETTINGS.default_rate_delay_sec,
-                push_delay_sec=SETTINGS.default_push_delay_sec,
+        # Cache for next time
+        if app and cache.available:
+            await cache.set_app_dict(
+                bundle_id, {"id": app.id, "bundle_id": app.bundle_id}
             )
-            self.session.add(app)
-            await self.session.flush()
-            logger.info(f"Created new app: {bundle_id}")
 
         return app
 
@@ -75,9 +83,7 @@ class InitService:
                 push_token=data.push.token if data.push else None,
             )
             self.session.add(client)
-            logger.info(f"Created new client: {data.ids.internal_id}")
         else:
-            # Update existing client fields
             client.app_version = data.app.version
             client.language = data.device.language
             client.timezone = data.device.timezone
@@ -86,7 +92,7 @@ class InitService:
             client.idfa = data.ids.idfa
             if data.attribution:
                 client.appsflyer_id = data.attribution.appsflyer_id
-            if data.push:
+            if data.push and data.push.token is not None:
                 client.push_token = data.push.token
             client.last_seen_at = datetime.now(UTC)
             client.sessions_count += 1
@@ -94,21 +100,67 @@ class InitService:
         await self.session.flush()
         return client, is_new
 
-    async def get_offer_for_geo(self, app_id: int, region: str) -> Offer | None:
-        """Find best offer for app and geo region.
+    @staticmethod
+    def _apply_link_filters(
+        stmt: Select,  # type: ignore[type-arg]
+        *,
+        language: str | None = None,
+        app_version: str | None = None,
+        att_status: str | None = None,
+    ) -> Select:  # type: ignore[type-arg]
+        """Apply nullable link filters: NULL in DB = matches any value."""
+        if language:
+            base_lang = language.split("-")[0] if "-" in language else language
+            stmt = stmt.where(or_(Link.language.is_(None), Link.language == base_lang))
+        else:
+            stmt = stmt.where(Link.language.is_(None))
+
+        if att_status:
+            stmt = stmt.where(
+                or_(Link.att_status.is_(None), Link.att_status == att_status)
+            )
+        else:
+            stmt = stmt.where(Link.att_status.is_(None))
+
+        if app_version:
+            stmt = stmt.where(
+                or_(Link.min_version.is_(None), Link.min_version <= app_version)
+            )
+            stmt = stmt.where(
+                or_(Link.max_version.is_(None), Link.max_version >= app_version)
+            )
+
+        return stmt
+
+    async def get_offer_for_geo(
+        self,
+        app_id: int,
+        region: str,
+        *,
+        language: str | None = None,
+        app_version: str | None = None,
+        att_status: str | None = None,
+    ) -> tuple[Offer, Link] | None:
+        """Find best offer+link for app, geo, and device filters.
+
+        Filters on Link (NULL = matches any):
+        - language: base language code (en, ru)
+        - app_version: must be between min_version..max_version
+        - att_status: ATT status string
 
         Priority order:
-        1. Exact geo match (e.g., region="EE" matches geo.code="EE")
-        2. Default geo (geo.is_default=True)
+        1. Exact geo match with matching filters
+        2. Default geo with matching filters
         3. None if no offers found
-
-        Uses COALESCE for priority: override from Link or default from Offer.
         """
         effective_priority = func.coalesce(Link.priority, Offer.priority)
+        filter_kwargs = dict(
+            language=language, app_version=app_version, att_status=att_status
+        )
 
         # Try exact geo match
         stmt = (
-            select(Offer)
+            select(Offer, Link)
             .join(Link, Offer.id == Link.offer_id)
             .join(Geo, Link.geo_id == Geo.id)
             .where(
@@ -121,15 +173,16 @@ class InitService:
             .order_by(effective_priority.desc())
             .limit(1)
         )
+        stmt = self._apply_link_filters(stmt, **filter_kwargs)
         result = await self.session.execute(stmt)
-        offer = result.scalar_one_or_none()
+        row = result.first()
 
-        if offer:
-            return offer
+        if row:
+            return row[0], row[1]
 
         # Fallback to default geo
         stmt = (
-            select(Offer)
+            select(Offer, Link)
             .join(Link, Offer.id == Link.offer_id)
             .join(Geo, Link.geo_id == Geo.id)
             .where(
@@ -142,19 +195,52 @@ class InitService:
             .order_by(effective_priority.desc())
             .limit(1)
         )
+        stmt = self._apply_link_filters(stmt, **filter_kwargs)
         result = await self.session.execute(stmt)
-        return result.scalar_one_or_none()
+        row = result.first()
 
-    async def process_init(self, data: InitRequest) -> InitResponse:
+        if row:
+            return row[0], row[1]
+
+        return None
+
+    async def process_init(
+        self, data: InitRequest, api_key: str | None = None
+    ) -> InitResponse:
         """Process init request: resolve app, client, offer, and build response."""
-        app = await self.get_or_create_app(data.app.bundle_id)
+        app = await self.get_app(data.app.bundle_id)
+
+        if not app:
+            from fastapi import HTTPException
+
+            raise HTTPException(status_code=404, detail="App not found")
+
+        if app.api_key and app.api_key != api_key:
+            from fastapi import HTTPException
+
+            raise HTTPException(status_code=401, detail="Invalid API key")
+
         client, is_new = await self.get_or_create_client(app, data)
 
-        offer = None
+        offer_link = None
         if app.mode == AppMode.CASINO:
-            offer = await self.get_offer_for_geo(app.id, data.device.region)
+            offer_link = await self.get_offer_for_geo(
+                app.id,
+                data.device.region,
+                language=data.device.language,
+                app_version=data.app.version,
+                att_status=data.privacy.att.value,
+            )
 
-        response = DecisionEngine.decide(app, offer)
+        offer = offer_link[0] if offer_link else None
+        link = offer_link[1] if offer_link else None
+
+        response = DecisionEngine.decide(
+            app=app,
+            offer=offer,
+            link=link,
+            app_version=data.app.version,
+        )
 
         logger.info(
             f"Init: app={app.bundle_id}, client={client.internal_id}, "
@@ -170,28 +256,48 @@ class DecisionEngine:
     """Build client response based on app mode and resolved offer."""
 
     @staticmethod
-    def decide(app: App, offer: Offer | None = None) -> InitResponse:
-        """Build InitResponse.
-
-        If result is set (URL string) -- casino mode (open WebView).
-        If result is None -- native mode (show legal content).
-        """
-        prompts = PromptsConfig(
-            rate_delay_sec=app.rate_delay_sec,
-            push_delay_sec=app.push_delay_sec,
+    def decide(
+        app: App,
+        offer: Offer | None = None,
+        link: Link | None = None,
+        app_version: str | None = None,
+    ) -> InitResponse:
+        """Build InitResponse with per-link overrides and server-side version check."""
+        # Per-link overrides or app defaults
+        rate_delay = (
+            link.rate_delay_sec
+            if link and link.rate_delay_sec is not None
+            else app.rate_delay_sec
+        )
+        push_delay = (
+            link.push_delay_sec
+            if link and link.push_delay_sec is not None
+            else app.push_delay_sec
+        )
+        icon_name = (
+            link.icon_name if link and link.icon_name is not None else app.icon_name
         )
 
+        prompts = PromptsConfig(
+            rate_delay_sec=rate_delay,
+            push_delay_sec=push_delay,
+        )
+
+        # Server-side version comparison
         update = None
-        if app.min_version or app.latest_version:
-            update = UpdateConfig(
-                min_version=app.min_version,
-                latest_version=app.latest_version,
-                mode=app.update_mode,
-                appstore_url=app.appstore_url,
-            )
+        if app_version and (app.min_version or app.latest_version):
+            update_mode = check_update(app_version, app.min_version, app.latest_version)
+            if update_mode:
+                update = UpdateConfig(
+                    min_version=app.min_version,
+                    latest_version=app.latest_version,
+                    mode=update_mode,
+                    appstore_url=app.appstore_url,
+                )
 
         return InitResponse(
             result=offer.url if (app.mode == AppMode.CASINO and offer) else None,
             prompts=prompts,
             update=update,
+            icon=icon_name,
         )

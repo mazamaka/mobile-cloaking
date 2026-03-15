@@ -4,7 +4,6 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.pool import NullPool
 from sqlmodel import SQLModel
 
 from config import SETTINGS
@@ -13,15 +12,26 @@ from config import SETTINGS
 class Database:
     """Async database wrapper with session management.
 
-    Uses NullPool for serverless-friendly connection handling.
+    Uses connection pool for production workloads (30k+ users/day).
     Sessions auto-commit on success and rollback on exception.
     """
 
-    def __init__(self, url: str, *, echo: bool = False) -> None:
+    def __init__(
+        self,
+        url: str,
+        *,
+        echo: bool = False,
+        pool_size: int = 10,
+        max_overflow: int = 20,
+    ) -> None:
         self.engine = create_async_engine(
             url,
             echo=echo,
-            poolclass=NullPool,
+            pool_size=pool_size,
+            max_overflow=max_overflow,
+            pool_timeout=30,
+            pool_recycle=1800,
+            pool_pre_ping=True,
         )
         self.async_session = async_sessionmaker(
             self.engine,
@@ -67,7 +77,12 @@ class Database:
         await self.engine.dispose()
 
 
-db = Database(url=SETTINGS.database_url, echo=SETTINGS.debug)
+db = Database(
+    url=SETTINGS.database_url,
+    echo=SETTINGS.debug,
+    pool_size=SETTINGS.db_pool_size,
+    max_overflow=SETTINGS.db_max_overflow,
+)
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
