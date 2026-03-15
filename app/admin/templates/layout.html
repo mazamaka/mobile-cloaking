@@ -490,6 +490,19 @@ textarea.form-control {
     color: var(--lux-gold) !important;
 }
 
+/* Plain .btn (no color class), .btn-light, .btn-white */
+.btn:not(.btn-primary):not(.btn-danger):not(.btn-success):not(.btn-warning):not(.btn-info):not(.btn-secondary):not(.btn-outline-primary):not(.btn-outline-secondary):not(.btn-outline-danger):not(.btn-ghost-primary):not(.btn-link):not(.btn-close):not(.dropdown-toggle):not(.navbar-toggler):not(.dt-button):not(.filter-tab):not(.quick-action-btn):not(.action-btn):not(.dm-close) {
+    background-color: var(--lux-bg-card-alt) !important;
+    border: 1px solid var(--lux-border) !important;
+    color: var(--lux-text) !important;
+}
+
+.btn:not(.btn-primary):not(.btn-danger):not(.btn-success):not(.btn-warning):not(.btn-info):not(.btn-secondary):not(.btn-outline-primary):not(.btn-outline-secondary):not(.btn-outline-danger):not(.btn-ghost-primary):not(.btn-link):not(.btn-close):not(.dropdown-toggle):not(.navbar-toggler):not(.dt-button):not(.filter-tab):not(.quick-action-btn):not(.action-btn):not(.dm-close):hover {
+    background-color: var(--lux-bg-card) !important;
+    border-color: var(--lux-gold) !important;
+    color: var(--lux-gold) !important;
+}
+
 .btn-light,
 .btn-white,
 .btn-default {
