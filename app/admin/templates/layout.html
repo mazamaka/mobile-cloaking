@@ -1052,23 +1052,64 @@ pre {
     color: var(--lux-gold) !important;
 }
 
-/* ---- Select2 / Choices.js (if used) ---- */
+/* ---- TomSelect ---- */
 .ts-wrapper .ts-control {
     background-color: var(--lux-bg-input) !important;
     border-color: var(--lux-border-input) !important;
     color: var(--lux-text) !important;
+    border-radius: var(--lux-radius-sm) !important;
 }
 
-.ts-wrapper .ts-dropdown {
-    background-color: var(--lux-bg-card) !important;
-    border-color: var(--lux-border) !important;
+.ts-wrapper .ts-control input {
     color: var(--lux-text) !important;
 }
 
+.ts-wrapper.focus .ts-control {
+    border-color: var(--lux-gold) !important;
+    box-shadow: 0 0 0 3px var(--lux-gold-glow) !important;
+}
+
+.ts-wrapper .ts-dropdown,
+.ts-dropdown,
+.ts-dropdown-content {
+    background-color: var(--lux-bg-card) !important;
+    border: 1px solid var(--lux-border) !important;
+    color: var(--lux-text) !important;
+    border-radius: var(--lux-radius-sm) !important;
+}
+
+.ts-wrapper .ts-dropdown .option,
+.ts-dropdown .option,
+.ts-dropdown-content .option {
+    background-color: var(--lux-bg-card) !important;
+    color: var(--lux-text) !important;
+    padding: 0.5rem 0.75rem !important;
+}
+
 .ts-wrapper .ts-dropdown .option:hover,
-.ts-wrapper .ts-dropdown .active {
+.ts-wrapper .ts-dropdown .option.active,
+.ts-dropdown .option:hover,
+.ts-dropdown .option.active,
+.ts-dropdown-content .option:hover,
+.ts-dropdown-content .option.active {
     background-color: rgba(200, 168, 78, 0.15) !important;
     color: var(--lux-gold) !important;
+}
+
+.ts-wrapper .ts-dropdown .option.selected {
+    background-color: rgba(200, 168, 78, 0.2) !important;
+    color: var(--lux-gold) !important;
+}
+
+.ts-wrapper .item {
+    background-color: var(--lux-bg-card-alt) !important;
+    border: 1px solid var(--lux-border) !important;
+    color: var(--lux-text) !important;
+}
+
+.ts-wrapper .ts-dropdown .no-results {
+    background-color: var(--lux-bg-card) !important;
+    color: var(--lux-text-muted) !important;
 }
 
 /* ---- Tabler Icons color ---- */
