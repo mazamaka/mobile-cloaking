@@ -1,0 +1,1210 @@
+{% extends "base.html" %}
+{% import "macros/views.html" as macros with context %}
+{% if (not _is_login_path ) and is_auth_enabled %}
+    {% set current_user = (request | get_admin_user) %}
+    {% set config = (request | get_admin_config) %}
+    {% set logo_url = config.logo_url if config and config.logo_url else logo_url %}
+    {% set app_title = config.app_title if config and config.app_title else app_title %}
+{% endif %}
+
+{% block head_css %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================
+   LUXHOST Dark Theme - Global CSS Override
+   ============================================ */
+
+:root {
+    --lux-bg: #0b0b0b;
+    --lux-bg-card: #161616;
+    --lux-bg-card-alt: #111111;
+    --lux-bg-sidebar: #0e0e0e;
+    --lux-bg-navbar: #0e0e0e;
+    --lux-bg-input: #1a1a1a;
+    --lux-border: rgba(255,255,255,.12);
+    --lux-border-input: #555;
+    --lux-gold: #c8a84e;
+    --lux-gold-hover: #d4b85e;
+    --lux-gold-dark: #b8943e;
+    --lux-gold-glow: rgba(200, 168, 78, 0.25);
+    --lux-text: #fff;
+    --lux-text-muted: rgba(255,255,255,.5);
+    --lux-text-dim: rgba(255,255,255,.3);
+    --lux-danger: #dc3545;
+    --lux-danger-hover: #c82333;
+    --lux-success: #28a745;
+    --lux-success-hover: #218838;
+    --lux-info: #3b82f6;
+    --lux-warning: #f59e0b;
+    --lux-radius: 10px;
+    --lux-radius-sm: 8px;
+    --lux-radius-lg: 12px;
+    --lux-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --lux-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* ---- Base ---- */
+body {
+    background-color: var(--lux-bg) !important;
+    color: var(--lux-text) !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+}
+
+h1, h2, h3, h4, h5, h6,
+.navbar-brand, .card-title {
+    font-family: 'Outfit', 'Inter', sans-serif !important;
+}
+
+.page {
+    background-color: var(--lux-bg) !important;
+}
+
+.page-wrapper {
+    background-color: var(--lux-bg) !important;
+}
+
+.page-body {
+    background-color: var(--lux-bg) !important;
+}
+
+.page-header {
+    background-color: transparent !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--lux-text) !important;
+}
+
+p, span, label, small, .text-muted, .text-secondary {
+    color: var(--lux-text-muted) !important;
+}
+
+a {
+    color: var(--lux-gold) !important;
+}
+
+a:hover {
+    color: var(--lux-gold-hover) !important;
+}
+
+hr {
+    border-color: var(--lux-border) !important;
+}
+
+/* ---- Sidebar (navbar-vertical) ---- */
+.navbar.navbar-vertical {
+    background-color: var(--lux-bg-sidebar) !important;
+    border-right: 1px solid var(--lux-border) !important;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3) !important;
+}
+
+.navbar-vertical .navbar-nav .nav-link {
+    color: var(--lux-text-muted) !important;
+    border-radius: var(--lux-radius-sm) !important;
+    margin: 2px 8px !important;
+    padding: 0.5rem 0.75rem !important;
+    transition: all 0.2s ease !important;
+}
+
+.navbar-vertical .navbar-nav .nav-link:hover {
+    color: var(--lux-gold) !important;
+    background-color: rgba(200, 168, 78, 0.08) !important;
+}
+
+.navbar-vertical .navbar-nav .nav-link.active,
+.navbar-vertical .navbar-nav .nav-item.active > .nav-link {
+    color: var(--lux-gold) !important;
+    background-color: rgba(200, 168, 78, 0.12) !important;
+    font-weight: 600 !important;
+}
+
+.navbar-vertical .navbar-nav .nav-link .icon {
+    color: inherit !important;
+}
+
+.navbar-brand,
+.navbar-brand a,
+.navbar-brand h3 {
+    color: var(--lux-gold) !important;
+}
+
+.navbar-toggler {
+    border-color: var(--lux-border) !important;
+}
+
+.navbar-toggler-icon {
+    filter: invert(0.8) !important;
+}
+
+/* Sidebar dropdown/collapse */
+.navbar-vertical .navbar-nav .dropdown-menu {
+    background-color: var(--lux-bg-sidebar) !important;
+    border-color: var(--lux-border) !important;
+}
+
+.navbar-vertical .navbar-nav .dropdown-toggle::after {
+    border-color: var(--lux-text-muted) !important;
+}
+
+/* ---- Top Navbar ---- */
+header.navbar {
+    background-color: var(--lux-bg-navbar) !important;
+    border-bottom: 1px solid var(--lux-border) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+header.navbar .navbar-nav .nav-link,
+header.navbar .btn {
+    color: var(--lux-text-muted) !important;
+}
+
+header.navbar .navbar-nav .nav-link:hover,
+header.navbar .btn:hover {
+    color: var(--lux-gold) !important;
+}
+
+header.navbar .avatar {
+    border: 2px solid var(--lux-border) !important;
+}
+
+/* ---- Cards ---- */
+.card {
+    background-color: var(--lux-bg-card) !important;
+    border: 1px solid var(--lux-border) !important;
+    border-radius: var(--lux-radius-lg) !important;
+    box-shadow: var(--lux-shadow) !important;
+    color: var(--lux-text) !important;
+}
+
+.card-header {
+    background-color: transparent !important;
+    border-bottom: 1px solid var(--lux-border) !important;
+}
+
+.card-title {
+    color: var(--lux-text) !important;
+}
+
+.card-footer {
+    background-color: transparent !important;
+    border-top: 1px solid var(--lux-border) !important;
+}
+
+.card-body {
+    color: var(--lux-text) !important;
+}
+
+/* ---- Tables ---- */
+.table,
+.table-vcenter {
+    color: var(--lux-text) !important;
+    --tblr-table-bg: transparent !important;
+}
+
+.table thead th {
+    background-color: var(--lux-bg-card-alt) !important;
+    color: var(--lux-text-muted) !important;
+    border-bottom: 2px solid var(--lux-border) !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    font-size: 0.75rem !important;
+    letter-spacing: 0.05em !important;
+}
+
+.table tbody tr {
+    border-bottom: 1px solid var(--lux-border) !important;
+}
+
+.table tbody tr:nth-child(odd) {
+    background-color: var(--lux-bg-card) !important;
+}
+
+.table tbody tr:nth-child(even) {
+    background-color: var(--lux-bg-card-alt) !important;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(200, 168, 78, 0.06) !important;
+}
+
+.table td {
+    border-color: var(--lux-border) !important;
+    color: var(--lux-text) !important;
+}
+
+.table a {
+    color: var(--lux-gold) !important;
+}
+
+.table .table-active,
+.table .table-active > td {
+    background-color: rgba(200, 168, 78, 0.1) !important;
+}
+
+/* DataTables specific */
+.dataTables_wrapper .dataTables_length label,
+.dataTables_wrapper .dataTables_filter label,
+.dataTables_wrapper .dataTables_info {
+    color: var(--lux-text-muted) !important;
+}
+
+.dataTables_wrapper .dataTables_length select,
+.dataTables_wrapper .dataTables_filter input {
+    background-color: var(--lux-bg-input) !important;
+    border: 1px solid var(--lux-border-input) !important;
+    color: var(--lux-text) !important;
+    border-radius: var(--lux-radius-sm) !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    color: var(--lux-text-muted) !important;
+    background: var(--lux-bg-card) !important;
+    border-color: var(--lux-border) !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: var(--lux-gold) !important;
+    border-color: var(--lux-gold) !important;
+    color: #000 !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: var(--lux-gold-dark) !important;
+    border-color: var(--lux-gold-dark) !important;
+    color: #000 !important;
+}
+
+table.dataTable span.highlight {
+    background-color: var(--lux-gold) !important;
+    color: #000 !important;
+}
+
+table.dataTable span.column_highlight {
+    background-color: var(--lux-gold-dark) !important;
+    color: #000 !important;
+}
+
+table.dataTable.dtr-inline.collapsed > tbody > tr > td.dtr-control:before,
+table.dataTable.dtr-inline.collapsed > tbody > tr > th.dtr-control:before {
+    background-color: var(--lux-gold) !important;
+}
+
+/* ---- Forms ---- */
+.form-control,
+.form-select {
+    background-color: var(--lux-bg-input) !important;
+    border: 1px solid var(--lux-border-input) !important;
+    color: var(--lux-text) !important;
+    border-radius: var(--lux-radius-sm) !important;
+    transition: border-color 0.2s, box-shadow 0.2s !important;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--lux-gold) !important;
+    box-shadow: 0 0 0 3px var(--lux-gold-glow) !important;
+    background-color: var(--lux-bg-input) !important;
+    color: var(--lux-text) !important;
+}
+
+.form-control::placeholder {
+    color: var(--lux-text-dim) !important;
+}
+
+.form-label {
+    color: var(--lux-text) !important;
+    font-weight: 500 !important;
+}
+
+.form-check-input {
+    background-color: var(--lux-bg-input) !important;
+    border-color: var(--lux-border-input) !important;
+}
+
+.form-check-input:checked {
+    background-color: var(--lux-gold) !important;
+    border-color: var(--lux-gold) !important;
+}
+
+.form-check-label {
+    color: var(--lux-text) !important;
+}
+
+.form-switch .form-check-input:checked {
+    background-color: var(--lux-gold) !important;
+}
+
+textarea.form-control {
+    background-color: var(--lux-bg-input) !important;
+    color: var(--lux-text) !important;
+}
+
+.input-group-text {
+    background-color: var(--lux-bg-card-alt) !important;
+    border-color: var(--lux-border-input) !important;
+    color: var(--lux-text-muted) !important;
+}
+
+.form-selectgroup-label {
+    background-color: var(--lux-bg-input) !important;
+    border-color: var(--lux-border-input) !important;
+    color: var(--lux-text) !important;
+}
+
+.form-selectgroup-input:checked + .form-selectgroup-label {
+    background-color: var(--lux-gold) !important;
+    border-color: var(--lux-gold) !important;
+    color: #000 !important;
+}
+
+/* ---- Buttons ---- */
+.btn-primary {
+    background: linear-gradient(135deg, var(--lux-gold), var(--lux-gold-dark)) !important;
+    border-color: var(--lux-gold) !important;
+    color: #000 !important;
+    font-weight: 600 !important;
+    border-radius: var(--lux-radius-sm) !important;
+    box-shadow: 0 2px 6px rgba(200, 168, 78, 0.3) !important;
+    transition: all 0.2s ease !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background: linear-gradient(135deg, var(--lux-gold-hover), var(--lux-gold)) !important;
+    border-color: var(--lux-gold-hover) !important;
+    box-shadow: 0 4px 12px rgba(200, 168, 78, 0.4) !important;
+    color: #000 !important;
+}
+
+.btn-primary:disabled {
+    background: #3a3a4e !important;
+    border-color: #3a3a4e !important;
+    color: var(--lux-text-dim) !important;
+    box-shadow: none !important;
+}
+
+.btn-danger {
+    background-color: var(--lux-danger) !important;
+    border-color: var(--lux-danger) !important;
+    color: white !important;
+}
+
+.btn-danger:hover {
+    background-color: var(--lux-danger-hover) !important;
+    border-color: var(--lux-danger-hover) !important;
+}
+
+.btn-success {
+    background-color: var(--lux-success) !important;
+    border-color: var(--lux-success) !important;
+    color: white !important;
+}
+
+.btn-success:hover {
+    background-color: var(--lux-success-hover) !important;
+    border-color: var(--lux-success-hover) !important;
+}
+
+.btn-secondary,
+.btn-outline-secondary {
+    background-color: var(--lux-bg-card-alt) !important;
+    border-color: var(--lux-border) !important;
+    color: var(--lux-text-muted) !important;
+}
+
+.btn-secondary:hover,
+.btn-outline-secondary:hover {
+    background-color: var(--lux-bg-card) !important;
+    border-color: var(--lux-gold) !important;
+    color: var(--lux-gold) !important;
+}
+
+.btn-light {
+    background-color: var(--lux-bg-card-alt) !important;
+    border-color: var(--lux-border) !important;
+    color: var(--lux-text) !important;
+}
+
+.btn-light:hover {
+    background-color: var(--lux-bg-card) !important;
+    border-color: var(--lux-gold) !important;
+    color: var(--lux-gold) !important;
+}
+
+.btn-ghost-primary,
+.btn-outline-primary {
+    color: var(--lux-gold) !important;
+    border-color: var(--lux-gold) !important;
+    background: transparent !important;
+}
+
+.btn-ghost-primary:hover,
+.btn-outline-primary:hover {
+    background: rgba(200, 168, 78, 0.1) !important;
+    color: var(--lux-gold-hover) !important;
+}
+
+/* ---- Dropdown Menus ---- */
+.dropdown-menu {
+    background-color: var(--lux-bg-card) !important;
+    border: 1px solid var(--lux-border) !important;
+    border-radius: var(--lux-radius-sm) !important;
+    box-shadow: var(--lux-shadow-lg) !important;
+}
+
+.dropdown-item {
+    color: var(--lux-text) !important;
+    transition: all 0.15s ease !important;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background-color: rgba(200, 168, 78, 0.1) !important;
+    color: var(--lux-gold) !important;
+}
+
+.dropdown-item.active,
+.dropdown-item:active {
+    background-color: var(--lux-gold) !important;
+    color: #000 !important;
+}
+
+.dropdown-divider {
+    border-color: var(--lux-border) !important;
+}
+
+.dropdown-header {
+    color: var(--lux-text-muted) !important;
+}
+
+.dropdown-menu-arrow::before {
+    border-bottom-color: var(--lux-border) !important;
+}
+
+/* ---- Modals ---- */
+.modal-content {
+    background-color: var(--lux-bg-card) !important;
+    border: 1px solid var(--lux-border) !important;
+    border-radius: var(--lux-radius-lg) !important;
+    box-shadow: var(--lux-shadow-lg) !important;
+    color: var(--lux-text) !important;
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--lux-border) !important;
+}
+
+.modal-header .modal-title {
+    color: var(--lux-text) !important;
+}
+
+.modal-header .btn-close {
+    filter: invert(0.8) !important;
+}
+
+.modal-body {
+    color: var(--lux-text) !important;
+}
+
+.modal-footer {
+    border-top: 1px solid var(--lux-border) !important;
+}
+
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+}
+
+/* ---- Pagination ---- */
+.page-item .page-link {
+    background-color: var(--lux-bg-card) !important;
+    border-color: var(--lux-border) !important;
+    color: var(--lux-text-muted) !important;
+    transition: all 0.2s ease !important;
+}
+
+.page-item .page-link:hover {
+    background-color: rgba(200, 168, 78, 0.1) !important;
+    border-color: var(--lux-gold) !important;
+    color: var(--lux-gold) !important;
+}
+
+.page-item.active .page-link {
+    background-color: var(--lux-gold) !important;
+    border-color: var(--lux-gold) !important;
+    color: #000 !important;
+    font-weight: 600 !important;
+}
+
+.page-item.disabled .page-link {
+    background-color: var(--lux-bg-card-alt) !important;
+    border-color: var(--lux-border) !important;
+    color: var(--lux-text-dim) !important;
+}
+
+/* ---- Badges ---- */
+.badge {
+    border-radius: 6px !important;
+    font-weight: 500 !important;
+}
+
+.badge.bg-primary,
+.badge.badge-primary {
+    background-color: var(--lux-gold) !important;
+    color: #000 !important;
+}
+
+.badge.bg-success,
+.badge.badge-success {
+    background-color: var(--lux-success) !important;
+}
+
+.badge.bg-danger,
+.badge.badge-danger {
+    background-color: var(--lux-danger) !important;
+}
+
+.badge.bg-warning,
+.badge.badge-warning {
+    background-color: var(--lux-warning) !important;
+    color: #000 !important;
+}
+
+.badge.bg-info,
+.badge.badge-info {
+    background-color: var(--lux-info) !important;
+}
+
+.badge.bg-secondary,
+.badge.badge-secondary {
+    background-color: var(--lux-bg-card-alt) !important;
+    color: var(--lux-text-muted) !important;
+    border: 1px solid var(--lux-border) !important;
+}
+
+/* ---- Alerts ---- */
+.alert {
+    border-radius: var(--lux-radius-sm) !important;
+}
+
+.alert-success {
+    background-color: rgba(40, 167, 69, 0.15) !important;
+    border-color: rgba(40, 167, 69, 0.3) !important;
+    color: #5cb85c !important;
+}
+
+.alert-danger,
+.alert-important.alert-danger {
+    background-color: rgba(220, 53, 69, 0.15) !important;
+    border-color: rgba(220, 53, 69, 0.3) !important;
+    color: #e74c3c !important;
+}
+
+.alert-warning {
+    background-color: rgba(245, 158, 11, 0.15) !important;
+    border-color: rgba(245, 158, 11, 0.3) !important;
+    color: #f0ad4e !important;
+}
+
+.alert-info {
+    background-color: rgba(59, 130, 246, 0.15) !important;
+    border-color: rgba(59, 130, 246, 0.3) !important;
+    color: #5bc0de !important;
+}
+
+/* ---- Breadcrumbs ---- */
+.breadcrumb {
+    background: transparent !important;
+}
+
+.breadcrumb-item a {
+    color: var(--lux-gold) !important;
+}
+
+.breadcrumb-item.active {
+    color: var(--lux-text-muted) !important;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    color: var(--lux-text-dim) !important;
+}
+
+/* ---- Tabs / Nav Tabs ---- */
+.nav-tabs {
+    border-bottom-color: var(--lux-border) !important;
+}
+
+.nav-tabs .nav-link {
+    color: var(--lux-text-muted) !important;
+    border-color: transparent !important;
+}
+
+.nav-tabs .nav-link:hover {
+    color: var(--lux-gold) !important;
+    border-color: var(--lux-border) var(--lux-border) transparent !important;
+}
+
+.nav-tabs .nav-link.active {
+    color: var(--lux-gold) !important;
+    background-color: var(--lux-bg-card) !important;
+    border-color: var(--lux-border) var(--lux-border) var(--lux-bg-card) !important;
+}
+
+/* ---- Login Page ---- */
+.page.page-center {
+    background-color: var(--lux-bg) !important;
+    background-image: radial-gradient(ellipse at top, rgba(200, 168, 78, 0.03) 0%, transparent 60%) !important;
+}
+
+/* Container tight is used on login page */
+.container-tight {
+    color: var(--lux-text) !important;
+}
+
+.container-tight .card {
+    background-color: var(--lux-bg-card) !important;
+    border: 1px solid var(--lux-border) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(200, 168, 78, 0.05) !important;
+}
+
+.container-tight .card-title {
+    color: var(--lux-gold) !important;
+}
+
+.container-tight .form-label {
+    color: var(--lux-text) !important;
+}
+
+.container-tight .form-check-label {
+    color: var(--lux-text-muted) !important;
+}
+
+/* ---- Detail View / Show Page ---- */
+.datagrid {
+    --tblr-datagrid-bg: transparent !important;
+}
+
+.datagrid-title {
+    color: var(--lux-text-muted) !important;
+}
+
+.datagrid-content {
+    color: var(--lux-text) !important;
+}
+
+/* ---- Tooltips ---- */
+.tooltip-inner {
+    background-color: var(--lux-bg-card) !important;
+    border: 1px solid var(--lux-border) !important;
+    color: var(--lux-text) !important;
+}
+
+/* ---- Popovers ---- */
+.popover {
+    background-color: var(--lux-bg-card) !important;
+    border-color: var(--lux-border) !important;
+}
+
+.popover-header {
+    background-color: var(--lux-bg-card-alt) !important;
+    border-bottom-color: var(--lux-border) !important;
+    color: var(--lux-text) !important;
+}
+
+.popover-body {
+    color: var(--lux-text) !important;
+}
+
+/* ---- List Groups ---- */
+.list-group-item {
+    background-color: var(--lux-bg-card) !important;
+    border-color: var(--lux-border) !important;
+    color: var(--lux-text) !important;
+}
+
+.list-group-item:hover {
+    background-color: rgba(200, 168, 78, 0.06) !important;
+}
+
+.list-group-item.active {
+    background-color: var(--lux-gold) !important;
+    border-color: var(--lux-gold) !important;
+    color: #000 !important;
+}
+
+/* ---- Progress Bars ---- */
+.progress {
+    background-color: var(--lux-bg-card-alt) !important;
+    border-radius: var(--lux-radius-sm) !important;
+}
+
+.progress-bar {
+    background-color: var(--lux-gold) !important;
+}
+
+/* ---- Avatars ---- */
+.avatar {
+    background-color: var(--lux-bg-card-alt) !important;
+    color: var(--lux-text-muted) !important;
+}
+
+/* ---- Accordion ---- */
+.accordion-item {
+    background-color: var(--lux-bg-card) !important;
+    border-color: var(--lux-border) !important;
+}
+
+.accordion-button {
+    background-color: var(--lux-bg-card) !important;
+    color: var(--lux-text) !important;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: rgba(200, 168, 78, 0.08) !important;
+    color: var(--lux-gold) !important;
+}
+
+.accordion-button::after {
+    filter: invert(0.7) !important;
+}
+
+/* ---- Toast (Bootstrap) ---- */
+.toast {
+    background-color: var(--lux-bg-card) !important;
+    border-color: var(--lux-border) !important;
+    color: var(--lux-text) !important;
+}
+
+.toast-header {
+    background-color: var(--lux-bg-card-alt) !important;
+    border-bottom-color: var(--lux-border) !important;
+    color: var(--lux-text) !important;
+}
+
+/* ---- Tabler specific utilities ---- */
+.bg-white {
+    background-color: var(--lux-bg-card) !important;
+}
+
+.bg-light {
+    background-color: var(--lux-bg-card-alt) !important;
+}
+
+.text-dark {
+    color: var(--lux-text) !important;
+}
+
+.border {
+    border-color: var(--lux-border) !important;
+}
+
+.border-bottom {
+    border-bottom-color: var(--lux-border) !important;
+}
+
+.border-top {
+    border-top-color: var(--lux-border) !important;
+}
+
+.shadow-sm,
+.shadow {
+    box-shadow: var(--lux-shadow) !important;
+}
+
+/* ---- Search Input ---- */
+.input-icon .input-icon-addon {
+    color: var(--lux-text-dim) !important;
+}
+
+/* ---- Empty States ---- */
+.empty {
+    color: var(--lux-text-muted) !important;
+}
+
+.empty-title {
+    color: var(--lux-text) !important;
+}
+
+.empty-subtitle {
+    color: var(--lux-text-muted) !important;
+}
+
+/* ---- Ribbon ---- */
+.ribbon {
+    background: var(--lux-gold) !important;
+    color: #000 !important;
+}
+
+/* ---- Close Button ---- */
+.btn-close {
+    filter: invert(0.8) grayscale(1) !important;
+}
+
+/* ---- Selection / Checkbox ---- */
+.form-check-input:focus {
+    border-color: var(--lux-gold) !important;
+    box-shadow: 0 0 0 3px var(--lux-gold-glow) !important;
+}
+
+/* ---- Container Fluid ---- */
+.container-fluid,
+.container-xl {
+    color: var(--lux-text) !important;
+}
+
+/* ---- Status Indicators ---- */
+.status-dot {
+    border: 2px solid var(--lux-bg-card) !important;
+}
+
+/* ---- Scrollbar Styling ---- */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--lux-bg);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--lux-border);
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--lux-gold-dark);
+}
+
+::-webkit-scrollbar-corner {
+    background: var(--lux-bg);
+}
+
+/* Firefox scrollbar */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--lux-border) var(--lux-bg);
+}
+
+/* ---- Code blocks ---- */
+code {
+    background-color: var(--lux-bg-card-alt) !important;
+    color: var(--lux-gold) !important;
+    border-radius: 4px !important;
+    padding: 0.15em 0.4em !important;
+}
+
+pre {
+    background-color: var(--lux-bg-card-alt) !important;
+    border: 1px solid var(--lux-border) !important;
+    border-radius: var(--lux-radius-sm) !important;
+    color: var(--lux-text) !important;
+}
+
+/* ---- Offcanvas ---- */
+.offcanvas {
+    background-color: var(--lux-bg-card) !important;
+    border-color: var(--lux-border) !important;
+    color: var(--lux-text) !important;
+}
+
+.offcanvas-header {
+    border-bottom: 1px solid var(--lux-border) !important;
+}
+
+/* ---- Spinner / Loading ---- */
+.spinner-border {
+    color: var(--lux-gold) !important;
+}
+
+/* ---- Select2 / Choices.js (if used) ---- */
+.ts-wrapper .ts-control {
+    background-color: var(--lux-bg-input) !important;
+    border-color: var(--lux-border-input) !important;
+    color: var(--lux-text) !important;
+}
+
+.ts-wrapper .ts-dropdown {
+    background-color: var(--lux-bg-card) !important;
+    border-color: var(--lux-border) !important;
+    color: var(--lux-text) !important;
+}
+
+.ts-wrapper .ts-dropdown .option:hover,
+.ts-wrapper .ts-dropdown .active {
+    background-color: rgba(200, 168, 78, 0.15) !important;
+    color: var(--lux-gold) !important;
+}
+
+/* ---- Tabler Icons color ---- */
+.icon {
+    color: inherit !important;
+}
+
+/* ---- Fix Tabler dark theme vars ---- */
+[data-bs-theme="dark"] {
+    --tblr-body-bg: var(--lux-bg) !important;
+    --tblr-card-bg: var(--lux-bg-card) !important;
+    --tblr-border-color: var(--lux-border) !important;
+}
+</style>
+{% endblock %}
+
+{% block body %}
+    <div class="page">
+        {% block sidebar %}
+            <aside class="navbar navbar-vertical navbar-expand-lg" data-bs-theme="dark">
+                <div class="container-fluid">
+                    <button class="navbar-toggler"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#sidebar-menu"
+                            aria-expanded="false"
+                            aria-controls="sidebar-menu">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <h1 class="navbar-brand navbar-brand-autodark">
+                        <a class="brand-link" href="{{ url_for(__name__ ~ ':index') }}">
+                            {% if logo_url %}
+                                <img src="{{ logo_url }}"
+                                     class="navbar-logo"/>
+                            {% else %}
+                                <h3>{{ app_title }}</h3>
+                            {% endif %}
+                        </a>
+                    </h1>
+                    {% if current_user or i18n_config.language_switcher %}
+                        <div class="navbar-nav flex-row d-lg-none">
+                            {% if i18n_config.language_switcher %}
+                                <div class="nav-item dropdown">
+                                    <a href="#" class="nav-link" data-bs-toggle="dropdown">
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                             class="icon icon-tabler icon-tabler-language"
+                                             width="24"
+                                             height="24"
+                                             viewBox="0 0 24 24"
+                                             stroke-width="2"
+                                             stroke="currentColor"
+                                             fill="none"
+                                             stroke-linecap="round"
+                                             stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <path d="M4 5h7"></path>
+                                            <path d="M9 3v2c0 4.418 -2.239 8 -5 8"></path>
+                                            <path d="M5 9c-.003 2.144 2.952 3.908 6.7 4"></path>
+                                            <path d="M12 20l4 -9l4 9"></path>
+                                            <path d="M19.1 18h-6.2"></path>
+                                        </svg>
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                                        {% for lang in i18n_config.language_switcher %}
+                                            <a href="#"
+                                               class="dropdown-item language-switcher-item"
+                                               data-lang="{{ lang }}"
+                                               data-cookie-name="{{ i18n_config.language_cookie_name }}">{{ get_locale_display_name(lang) }}</a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                            {% if current_user %}
+                                <div class="nav-item dropdown ms-3">
+                                    <a href="#"
+                                       class="nav-link d-flex lh-1 text-reset p-0"
+                                       data-bs-toggle="dropdown"
+                                       aria-label="Open user menu">
+                                        <span class="avatar avatar-sm"
+                                              {% if current_user.photo_url %}style="background-image: url({{ current_user.photo_url }})"{% endif %}>
+                                            {% if not current_user.photo_url %}
+                                                <svg xmlns="http://www.w3.org/2000/svg"
+                                                     class="icon icon-tabler icon-tabler-user"
+                                                     width="24"
+                                                     height="24"
+                                                     viewBox="0 0 24 24"
+                                                     stroke-width="2"
+                                                     stroke="currentColor"
+                                                     fill="none"
+                                                     stroke-linecap="round"
+                                                     stroke-linejoin="round">
+                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                    <circle cx="12" cy="7" r="4"></circle>
+                                                    <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"></path>
+                                                </svg>
+                                            {% endif %}
+                                        </span>
+                                        <div class="d-none d-xl-block ps-2">
+                                            <div>{{ current_user.username }}</div>
+                                        </div>
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                                        <a href="{{ request.url_for(__name__ ~ ':logout') }}"
+                                           class="dropdown-item">{{ _("Logout") }}</a>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    <div class="collapse navbar-collapse" id="sidebar-menu">
+                        <ul class="navbar-nav pt-lg-3">
+                            {% for view in views if view.is_accessible(request) %}
+                                {% if (view| is_link) %}
+                                    {{ macros.extern_link(view) }}
+                                {% elif (view| is_custom_view) and view.add_to_menu %}
+                                    {{ macros.custom_link(view) }}
+                                {% elif (view| is_model) %}
+                                    {{ macros.model_link(view) }}
+                                {% elif (view | is_dropdown) %}
+                                    {{ macros.dropdown_link(view) }}
+                                {% endif %}
+                            {% endfor %}
+                            {% if is_auth_enabled and current_user is none %}
+                                <a href="{{ request.url_for(__name__ ~ ':logout') }}"
+                                   class="btn btn-light mx-1 mt-2">
+                                    <i class="fa fa-sign-out"></i>
+                                    <span class="ms-2">{{ _("Logout") }}</span>
+                                </a>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </aside>
+        {% endblock %}
+        {% block navbar %}
+            {% if current_user or i18n_config.language_switcher or (timezone_config and timezone_config.timezone_switcher) %}
+                <header class="navbar navbar-expand-md navbar-light d-none d-lg-flex d-print-none">
+                    <div class="container-xl">
+                        <button class="navbar-toggler"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#navbar-menu"
+                                aria-controls="navbar-menu"
+                                aria-expanded="false"
+                                aria-label="Toggle navigation">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+                        <div class="navbar-nav flex-row order-md-last gap-2">
+                            {% if i18n_config.language_switcher %}
+                                <div class="nav-item dropdown">
+                                    <button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown">
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                             class="icon icon-tabler icon-tabler-language"
+                                             width="24"
+                                             height="24"
+                                             viewBox="0 0 24 24"
+                                             stroke-width="2"
+                                             stroke="currentColor"
+                                             fill="none"
+                                             stroke-linecap="round"
+                                             stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <path d="M4 5h7"></path>
+                                            <path d="M9 3v2c0 4.418 -2.239 8 -5 8"></path>
+                                            <path d="M5 9c-.003 2.144 2.952 3.908 6.7 4"></path>
+                                            <path d="M12 20l4 -9l4 9"></path>
+                                            <path d="M19.1 18h-6.2"></path>
+                                        </svg>
+                                        {{ get_locale_display_name(get_locale()) }}
+                                    </button>
+                                    <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                                        {% for lang in i18n_config.language_switcher %}
+                                            <a href="#"
+                                               class="dropdown-item language-switcher-item"
+                                               data-lang="{{ lang }}"
+                                               data-cookie-name="{{ i18n_config.language_cookie_name }}">{{ get_locale_display_name(lang) }}</a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                            {% if timezone_config and timezone_config.timezone_switcher %}
+                                <div class="nav-item dropdown">
+                                    <button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown">
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                             class="icon icon-tabler icon-tabler-world"
+                                             width="24"
+                                             height="24"
+                                             viewBox="0 0 24 24"
+                                             stroke-width="2"
+                                             stroke="currentColor"
+                                             fill="none"
+                                             stroke-linecap="round"
+                                             stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <circle cx="12" cy="12" r="9"></circle>
+                                            <line x1="3.6" y1="9" x2="20.4" y2="9"></line>
+                                            <line x1="3.6" y1="15" x2="20.4" y2="15"></line>
+                                            <path d="M11.5 3a17 17 0 0 0 0 18"></path>
+                                            <path d="M12.5 3a17 17 0 0 1 0 18"></path>
+                                        </svg>
+                                        {{ get_timezone_display_name(get_timezone()) }}
+                                    </button>
+                                    <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                                        {% for tz in timezone_config.timezone_switcher %}
+                                            <a href="#"
+                                               class="dropdown-item timezone-switcher-item"
+                                               data-tz="{{ tz }}"
+                                               data-cookie-name="{{ timezone_config.timezone_cookie_name }}">{{ get_timezone_display_name(tz, show_offset=True) }}</a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                            {% if current_user %}
+                                <div class="nav-item dropdown ms-3">
+                                    <a href="#"
+                                       class="nav-link d-flex lh-1 text-reset p-0"
+                                       data-bs-toggle="dropdown"
+                                       aria-label="Open user menu">
+                                        <span class="avatar avatar-sm"
+                                                {% if current_user.photo_url %}
+                                              style="background-image: url({{ current_user.photo_url }})"{% endif %}>
+                                            {% if not current_user.photo_url %}
+                                                <svg xmlns="http://www.w3.org/2000/svg"
+                                                     class="icon icon-tabler icon-tabler-user"
+                                                     width="24"
+                                                     height="24"
+                                                     viewBox="0 0 24 24"
+                                                     stroke-width="2"
+                                                     stroke="currentColor"
+                                                     fill="none"
+                                                     stroke-linecap="round"
+                                                     stroke-linejoin="round">
+                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                    <circle cx="12" cy="7" r="4"></circle>
+                                                    <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"></path>
+                                                </svg>
+                                            {% endif %}
+                                        </span>
+                                        <div class="ps-2">
+                                            <div>{{ current_user.username }}</div>
+                                        </div>
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                                        <a href="{{ request.url_for(__name__ ~ ':logout') }}"
+                                           class="dropdown-item">{{ _("Logout") }}</a>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="collapse navbar-collapse" id="navbar-menu">
+                        </div>
+                    </div>
+                </header>
+            {% endif %}
+        {% endblock %}
+        <div class="page-wrapper">
+            <div class="container-fluid">
+                <div class="page-header d-print-none">
+                    {% block header %}{% endblock %}
+                </div>
+            </div>
+            <div class="page-body flex-grow-1">
+                <div class="container-fluid">
+                    <div class="row row-deck row-cards">
+                        {% block content %}{% endblock %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
