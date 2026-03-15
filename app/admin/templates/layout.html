@@ -71,6 +71,13 @@ h1, h2, h3, h4, h5, h6,
 
 .page-header {
     background-color: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: 0 !important;
+}
+
+.page-header:empty {
+    display: none !important;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -1046,6 +1053,75 @@ header.navbar .nav-link .ps-2 div {
 /* ---- Smooth transitions globally ---- */
 .card, .btn, .nav-link, .form-control, .form-select, .badge, .page-link {
     transition: all 0.2s ease !important;
+}
+
+/* ---- Sidebar dropdown closed by default (only open when active) ---- */
+.navbar-vertical .nav-item.dropdown .dropdown-menu.show {
+    display: none;
+}
+.navbar-vertical .nav-item.dropdown.active .dropdown-menu.show,
+.navbar-vertical .nav-item.dropdown .dropdown-toggle[aria-expanded="true"] + .dropdown-menu {
+    display: block;
+}
+
+/* ---- Table action icons (view/edit/delete) ---- */
+.table td a i.fa,
+.table td a i.fas,
+.table td a i.far,
+.table td button i.fa,
+.table td button i.fas {
+    color: var(--lux-text-muted) !important;
+}
+.table td a:hover i.fa,
+.table td a:hover i.fas,
+.table td a:hover i.far {
+    color: var(--lux-gold) !important;
+}
+
+/* ---- Row checkboxes ---- */
+.form-check-input[type="checkbox"] {
+    background-color: var(--lux-bg-input) !important;
+    border: 1px solid var(--lux-border-input) !important;
+}
+
+/* ---- Table toolbar buttons ---- */
+.dt-buttons .btn,
+.btn-group .btn {
+    background-color: var(--lux-bg-card-alt) !important;
+    border-color: var(--lux-border) !important;
+    color: var(--lux-text-muted) !important;
+}
+.dt-buttons .btn:hover,
+.btn-group .btn:hover {
+    border-color: var(--lux-gold) !important;
+    color: var(--lux-gold) !important;
+}
+
+/* ---- Page size select (force dark) ---- */
+.dataTables_wrapper select,
+.dataTables_wrapper input,
+.card-header select,
+.card select {
+    background-color: var(--lux-bg-input) !important;
+    border: 1px solid var(--lux-border-input) !important;
+    color: var(--lux-text) !important;
+    border-radius: var(--lux-radius-sm) !important;
+    padding: 0.375rem 0.75rem !important;
+}
+
+/* ---- "No matching records" text ---- */
+.dataTables_wrapper .dataTables_empty {
+    color: var(--lux-text-muted) !important;
+}
+
+/* ---- Action column icons styling ---- */
+td .btn-link,
+td a[data-url] {
+    color: var(--lux-text-muted) !important;
+}
+td .btn-link:hover,
+td a[data-url]:hover {
+    color: var(--lux-gold) !important;
 }
 </style>
 {% endblock %}
