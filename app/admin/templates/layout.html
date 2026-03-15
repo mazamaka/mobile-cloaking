@@ -490,13 +490,17 @@ textarea.form-control {
     color: var(--lux-gold) !important;
 }
 
-.btn-light {
+.btn-light,
+.btn-white,
+.btn-default {
     background-color: var(--lux-bg-card-alt) !important;
-    border-color: var(--lux-border) !important;
+    border: 1px solid var(--lux-border) !important;
     color: var(--lux-text) !important;
 }
 
-.btn-light:hover {
+.btn-light:hover,
+.btn-white:hover,
+.btn-default:hover {
     background-color: var(--lux-bg-card) !important;
     border-color: var(--lux-gold) !important;
     color: var(--lux-gold) !important;
@@ -1110,6 +1114,63 @@ pre {
 .ts-wrapper .ts-dropdown .no-results {
     background-color: var(--lux-bg-card) !important;
     color: var(--lux-text-muted) !important;
+}
+
+/* ---- Select2 ---- */
+.select2-container .select2-selection,
+.select2-container--default .select2-selection--single,
+.select2-container--default .select2-selection--multiple {
+    background-color: var(--lux-bg-input) !important;
+    border: 1px solid var(--lux-border-input) !important;
+    color: var(--lux-text) !important;
+    border-radius: var(--lux-radius-sm) !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: var(--lux-text) !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow b {
+    border-color: var(--lux-text-muted) transparent transparent !important;
+}
+
+.select2-dropdown {
+    background-color: var(--lux-bg-card) !important;
+    border: 1px solid var(--lux-border) !important;
+    color: var(--lux-text) !important;
+    border-radius: var(--lux-radius-sm) !important;
+    box-shadow: var(--lux-shadow-lg) !important;
+}
+
+.select2-container--default .select2-search--dropdown .select2-search__field {
+    background-color: var(--lux-bg-input) !important;
+    border: 1px solid var(--lux-border-input) !important;
+    color: var(--lux-text) !important;
+    border-radius: 6px !important;
+}
+
+.select2-results__option {
+    background-color: var(--lux-bg-card) !important;
+    color: var(--lux-text) !important;
+    padding: 0.5rem 0.75rem !important;
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected],
+.select2-container--default .select2-results__option--highlighted {
+    background-color: rgba(200, 168, 78, 0.15) !important;
+    color: var(--lux-gold) !important;
+}
+
+.select2-container--default .select2-results__option--selected,
+.select2-container--default .select2-results__option[aria-selected="true"] {
+    background-color: rgba(200, 168, 78, 0.25) !important;
+    color: var(--lux-gold) !important;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: var(--lux-bg-card-alt) !important;
+    border: 1px solid var(--lux-border) !important;
+    color: var(--lux-text) !important;
 }
 
 /* ---- Tabler Icons color ---- */
