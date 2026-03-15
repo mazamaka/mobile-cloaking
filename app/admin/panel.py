@@ -58,7 +58,7 @@ def create_admin() -> Admin:
                 secret_key=SETTINGS.auth_secret,
                 max_age=3600,  # 1 hour session lifetime
                 same_site="lax",  # CSRF protection
-                https_only=not SETTINGS.debug,  # Secure cookie in production
+                https_only=False,  # Handled by reverse proxy (NPM) + Force SSL
             ),
         ],
     )
