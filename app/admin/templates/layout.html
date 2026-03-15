@@ -571,7 +571,9 @@ textarea.form-control {
 }
 
 /* ---- Modals ---- */
-.modal-content {
+.modal .modal-content,
+.modal-content,
+#modal-action .modal-content {
     background-color: var(--lux-bg-card) !important;
     border: 1px solid var(--lux-border) !important;
     border-radius: var(--lux-radius-lg) !important;
@@ -591,12 +593,26 @@ textarea.form-control {
     filter: invert(0.8) !important;
 }
 
-.modal-body {
+.modal-body,
+.modal .modal-body {
     color: var(--lux-text) !important;
+    background-color: var(--lux-bg-card) !important;
 }
 
-.modal-footer {
+.modal-footer,
+.modal .modal-footer {
     border-top: 1px solid var(--lux-border) !important;
+    background-color: var(--lux-bg-card) !important;
+}
+
+.btn-link.link-secondary,
+.modal .btn-link {
+    color: var(--lux-text-muted) !important;
+}
+
+.btn-link.link-secondary:hover,
+.modal .btn-link:hover {
+    color: var(--lux-text) !important;
 }
 
 .modal-backdrop {
@@ -1347,7 +1363,22 @@ div.dt-button-collection {
 
 .dt-button-collection .dt-button.active,
 .dt-button-collection button.dt-button.active {
-    background-color: rgba(200, 168, 78, 0.15) !important;
+    background-color: rgba(200, 168, 78, 0.12) !important;
+    color: var(--lux-gold) !important;
+    font-weight: 600;
+}
+
+/* ---- Batch actions "With selected" dropdown ---- */
+.btn.dropdown-toggle {
+    background-color: var(--lux-bg-input) !important;
+    border: 1px solid var(--lux-border-input) !important;
+    color: var(--lux-text) !important;
+}
+
+.btn.dropdown-toggle:hover,
+.btn.dropdown-toggle:focus {
+    background-color: var(--lux-bg-card) !important;
+    border-color: var(--lux-gold) !important;
     color: var(--lux-gold) !important;
 }
 
