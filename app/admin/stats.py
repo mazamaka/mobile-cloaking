@@ -321,11 +321,11 @@ async def create_geo(
 
 async def get_events_stats(session: AsyncSession) -> dict:
     """Get events statistics for dashboard."""
-    from datetime import UTC, datetime, timedelta
+    from datetime import datetime, timedelta
 
     from app.table.event.model import Event
 
-    now = datetime.now(UTC)
+    now = datetime.utcnow()
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
     week_ago = now - timedelta(days=7)
     month_ago = now - timedelta(days=30)
