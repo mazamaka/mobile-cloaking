@@ -103,28 +103,36 @@ hr {
 /* ---- Sidebar (navbar-vertical) ---- */
 .navbar.navbar-vertical {
     background-color: var(--lux-bg-sidebar) !important;
-    border-right: 1px solid var(--lux-border) !important;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3) !important;
+    border-right: none !important;
+    box-shadow: none !important;
 }
 
 .navbar-vertical .navbar-nav .nav-link {
     color: var(--lux-text-muted) !important;
-    border-radius: var(--lux-radius-sm) !important;
-    margin: 2px 8px !important;
-    padding: 0.5rem 0.75rem !important;
+    border-radius: 10px !important;
+    margin: 1px 12px !important;
+    padding: 0.6rem 0.875rem !important;
     transition: all 0.2s ease !important;
+    font-size: 0.9rem !important;
 }
 
 .navbar-vertical .navbar-nav .nav-link:hover {
-    color: var(--lux-gold) !important;
-    background-color: rgba(200, 168, 78, 0.08) !important;
+    color: var(--lux-text) !important;
+    background-color: rgba(255, 255, 255, 0.05) !important;
 }
 
 .navbar-vertical .navbar-nav .nav-link.active,
 .navbar-vertical .navbar-nav .nav-item.active > .nav-link {
-    color: var(--lux-gold) !important;
-    background-color: rgba(200, 168, 78, 0.12) !important;
+    color: var(--lux-text) !important;
+    background-color: var(--lux-gold) !important;
     font-weight: 600 !important;
+}
+
+.navbar-vertical .navbar-nav .nav-link.active .icon,
+.navbar-vertical .navbar-nav .nav-link.active i,
+.navbar-vertical .navbar-nav .nav-item.active > .nav-link .icon,
+.navbar-vertical .navbar-nav .nav-item.active > .nav-link i {
+    color: var(--lux-bg) !important;
 }
 
 .navbar-vertical .navbar-nav .nav-link .icon {
@@ -148,11 +156,12 @@ hr {
 /* Sidebar dropdown/collapse */
 .navbar-vertical .navbar-nav .dropdown-menu {
     background-color: var(--lux-bg-sidebar) !important;
-    border-color: var(--lux-border) !important;
+    border: none !important;
+    padding-left: 1rem !important;
 }
 
 .navbar-vertical .navbar-nav .dropdown-toggle::after {
-    border-color: var(--lux-text-muted) !important;
+    border-color: var(--lux-text-dim) !important;
 }
 
 /* ---- Top Navbar ---- */
@@ -224,16 +233,12 @@ header.navbar .avatar {
     border-bottom: 1px solid var(--lux-border) !important;
 }
 
-.table tbody tr:nth-child(odd) {
-    background-color: var(--lux-bg-card) !important;
-}
-
-.table tbody tr:nth-child(even) {
-    background-color: var(--lux-bg-card-alt) !important;
+.table tbody tr {
+    background-color: transparent !important;
 }
 
 .table tbody tr:hover {
-    background-color: rgba(200, 168, 78, 0.06) !important;
+    background-color: rgba(255, 255, 255, 0.03) !important;
 }
 
 .table td {
@@ -500,14 +505,15 @@ textarea.form-control {
 .btn-ghost-primary,
 .btn-outline-primary {
     color: var(--lux-gold) !important;
-    border-color: var(--lux-gold) !important;
+    border: 1px solid var(--lux-gold) !important;
     background: transparent !important;
+    border-radius: 8px !important;
 }
 
 .btn-ghost-primary:hover,
 .btn-outline-primary:hover {
-    background: rgba(200, 168, 78, 0.1) !important;
-    color: var(--lux-gold-hover) !important;
+    background: var(--lux-gold) !important;
+    color: #000 !important;
 }
 
 /* ---- Dropdown Menus ---- */
@@ -740,30 +746,41 @@ span.badge:not(.bg-primary):not(.bg-success):not(.bg-danger):not(.bg-warning):no
 /* ---- Login Page ---- */
 .page.page-center {
     background-color: var(--lux-bg) !important;
-    background-image: radial-gradient(ellipse at top, rgba(200, 168, 78, 0.03) 0%, transparent 60%) !important;
+    background-image: none !important;
 }
 
-/* Container tight is used on login page */
 .container-tight {
     color: var(--lux-text) !important;
 }
 
 .container-tight .card {
-    background-color: var(--lux-bg-card) !important;
-    border: 1px solid var(--lux-border) !important;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(200, 168, 78, 0.05) !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    max-width: 400px !important;
 }
 
 .container-tight .card-title {
-    color: var(--lux-gold) !important;
+    color: var(--lux-text) !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 1.75rem !important;
+    font-weight: 700 !important;
 }
 
 .container-tight .form-label {
     color: var(--lux-text) !important;
+    font-weight: 500 !important;
 }
 
 .container-tight .form-check-label {
     color: var(--lux-text-muted) !important;
+}
+
+.container-tight .btn-primary {
+    width: 100% !important;
+    padding: 0.75rem !important;
+    font-size: 1rem !important;
+    border-radius: 10px !important;
 }
 
 /* ---- Detail View / Show Page ---- */
@@ -855,17 +872,46 @@ span.badge:not(.bg-primary):not(.bg-success):not(.bg-danger):not(.bg-warning):no
     filter: invert(0.7) !important;
 }
 
-/* ---- Toast (Bootstrap) ---- */
-.toast {
+/* ---- Toast / Notifications ---- */
+.toast,
+.alert.alert-dismissible,
+.toast-container .toast {
     background-color: var(--lux-bg-card) !important;
-    border-color: var(--lux-border) !important;
+    border: 1px solid var(--lux-border) !important;
     color: var(--lux-text) !important;
+    border-radius: var(--lux-radius) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
 }
 
 .toast-header {
     background-color: var(--lux-bg-card-alt) !important;
     border-bottom-color: var(--lux-border) !important;
     color: var(--lux-text) !important;
+}
+
+/* Starlette Admin flash messages */
+.alert.alert-success {
+    background-color: var(--lux-bg-card) !important;
+    border-left: 4px solid var(--lux-success) !important;
+    border-top: 1px solid var(--lux-border) !important;
+    border-right: 1px solid var(--lux-border) !important;
+    border-bottom: 1px solid var(--lux-border) !important;
+    color: var(--lux-text) !important;
+}
+
+.alert.alert-danger {
+    background-color: var(--lux-bg-card) !important;
+    border-left: 4px solid var(--lux-danger) !important;
+    border-top: 1px solid var(--lux-border) !important;
+    border-right: 1px solid var(--lux-border) !important;
+    border-bottom: 1px solid var(--lux-border) !important;
+    color: var(--lux-text) !important;
+}
+
+.alert .btn-close {
+    filter: invert(0.8) !important;
 }
 
 /* ---- Tabler specific utilities ---- */
