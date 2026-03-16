@@ -9,9 +9,9 @@ from starlette_admin.i18n import TimezoneConfig
 from starlette_admin.views import CustomView, Link as AdminLink
 
 TIMEZONE_CONFIG = TimezoneConfig(
-    default_timezone="Europe/Kiev",
+    default_timezone="Europe/Kyiv",
     database_timezone="UTC",
-    timezone_switcher=["Europe/Kiev", "UTC"],
+    timezone_switcher=["Europe/Kyiv", "UTC"],
 )
 
 from app.admin.auth.provider import CustomAuthProvider
