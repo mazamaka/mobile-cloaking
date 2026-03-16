@@ -24,6 +24,7 @@ from app.table.client.schemas import (
 from app.table.geo.model import Geo
 from app.table.link.model import Link
 from app.table.offer.model import Offer
+from app.utils.countries import get_country_name
 from app.utils.logger import logger
 from app.utils.version import check_update
 
@@ -322,6 +323,7 @@ class InitService:
             cf_country=cf_country,
             bundle_id=data.app.bundle_id,
             result_mode=result_mode,
+            geo_source=app.geo_source.value,
             request_headers=headers_dict,
             request_body=data.model_dump(mode="json"),
             response_code=200,

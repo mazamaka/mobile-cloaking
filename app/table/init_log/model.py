@@ -31,6 +31,9 @@ class InitLog(SQLModel, table=True):
     cf_country: str | None = Field(default=None, max_length=10, index=True)
     bundle_id: str | None = Field(default=None, max_length=255, index=True)
     result_mode: str | None = Field(default=None, max_length=10)  # "casino" / "native"
+    geo_source: str | None = Field(
+        default=None, max_length=15
+    )  # "cloudflare" / "device"
 
     # Request data
     request_headers: dict[str, Any] = Field(sa_column=Column(JSONB))

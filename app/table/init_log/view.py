@@ -31,6 +31,11 @@ class InitLogView(ModelView):
             label="Result",
             help_text="Результат: casino (URL) или native (null)",
         ),
+        StringField(
+            "geo_source",
+            label="Geo Source",
+            help_text="Источник гео на момент запроса: cloudflare или device",
+        ),
         JSONField(
             "request_headers",
             label="Request Headers",
@@ -58,7 +63,14 @@ class InitLogView(ModelView):
     exclude_fields_from_list = ["request_headers", "request_body", "response_body"]
 
     searchable_fields = ["ip", "cf_country", "bundle_id"]
-    sortable_fields = ["id", "cf_country", "bundle_id", "result_mode", "created_at"]
+    sortable_fields = [
+        "id",
+        "cf_country",
+        "bundle_id",
+        "result_mode",
+        "geo_source",
+        "created_at",
+    ]
 
     # Read-only view (logs are created automatically)
     def can_create(self, request: Request) -> bool:
