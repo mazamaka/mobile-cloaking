@@ -15,6 +15,13 @@ class GeoView(ModelView):
     fields = [
         IntegerField("id", label="ID", help_text="Уникальный идентификатор региона"),
         StringField(
+            "flag",
+            label="Flag",
+            help_text="Флаг страны (вычисляется из кода)",
+            exclude_from_create=True,
+            exclude_from_edit=True,
+        ),
+        StringField(
             "code",
             label="Code (ISO)",
             help_text="ISO 3166-1 alpha-2 код страны: EE, HU, PL, US и т.д.",
@@ -47,8 +54,8 @@ class GeoView(ModelView):
     ]
 
     exclude_fields_from_list = ["created_at", "updated_at"]
-    exclude_fields_from_create = ["id", "created_at", "updated_at"]
-    exclude_fields_from_edit = ["id", "created_at", "updated_at"]
+    exclude_fields_from_create = ["id", "flag", "created_at", "updated_at"]
+    exclude_fields_from_edit = ["id", "flag", "created_at", "updated_at"]
 
     searchable_fields = ["code", "name"]
     sortable_fields = ["id", "code", "name", "is_default", "is_active"]

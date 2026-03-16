@@ -36,18 +36,21 @@ class Geo(SQLModel, table=True):
     is_active: bool = Field(default=True)
 
     # Timestamps
-    created_at: datetime = Field(
-        default_factory=utc_now, sa_type=DateTime
-    )
-    updated_at: datetime = Field(
-        default_factory=utc_now, sa_type=DateTime
-    )
+    created_at: datetime = Field(default_factory=utc_now, sa_type=DateTime)
+    updated_at: datetime = Field(default_factory=utc_now, sa_type=DateTime)
 
     # Relationships
     links: list["Link"] = Relationship(
         back_populates="geo", sa_relationship_kwargs={"lazy": "selectin"}
     )
 
+    @property
+    def flag(self) -> str:
+        """Convert ISO alpha-2 code to flag emoji (e.g. 'HU' -> '🇭🇺')."""
+        if not self.code or len(self.code) != 2:
+            return "🌐"
+        return "".join(chr(0x1F1E6 + ord(c) - ord("A")) for c in self.code.upper())
+
     def __admin_repr__(self, request: object) -> str:
-        """Return 'CODE (Name)' for admin panel."""
-        return f"{self.code} ({self.name})"
+        """Return '🇭🇺 HU (Hungary)' for admin panel."""
+        return f"{self.flag} {self.code} ({self.name})"

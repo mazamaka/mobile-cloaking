@@ -85,3 +85,6 @@ migrations/versions/*.pyc
 
 # Docker
 .docker/
+
+# MCP (contains credentials)
+.mcp.json
