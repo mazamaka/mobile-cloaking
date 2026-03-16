@@ -62,6 +62,12 @@ class AppService:
 
     def _app_to_detail(self, app: App) -> AppDetailResponse:
         """Convert App model to detail response."""
+        mode = app.mode.value if hasattr(app.mode, "value") else str(app.mode)
+        update_mode = (
+            app.update_mode.value
+            if hasattr(app.update_mode, "value")
+            else app.update_mode
+        )
         return AppDetailResponse(
             id=app.id,  # type: ignore[arg-type]
             bundle_id=app.bundle_id,
@@ -69,12 +75,12 @@ class AppService:
             name=app.name,
             api_key=app.api_key,
             group_id=app.group_id,
-            mode=app.mode.value if isinstance(app.mode, AppMode) else str(app.mode),
+            mode=mode,
             rate_delay_sec=app.rate_delay_sec,
             push_delay_sec=app.push_delay_sec,
             min_version=app.min_version,
             latest_version=app.latest_version,
-            update_mode=app.update_mode.value if app.update_mode else None,
+            update_mode=update_mode,
             appstore_url=app.appstore_url,
             icon_name=app.icon_name,
             is_active=app.is_active,
@@ -251,7 +257,7 @@ class AppService:
     async def switch_mode(self, bundle_id: str, req: AppModeRequest) -> AppModeResponse:
         """Quick mode switch for a single app."""
         app = await self._get_app_or_404(bundle_id)
-        old_mode = app.mode.value if isinstance(app.mode, AppMode) else str(app.mode)
+        old_mode = app.mode.value if hasattr(app.mode, "value") else str(app.mode)
         app.mode = AppMode(req.mode)
         app.updated_at = datetime.utcnow()
         await self.session.commit()
@@ -359,7 +365,7 @@ class AppService:
     async def test_init(self, bundle_id: str, geo: str) -> TestInitResponse:
         """Dry-run init: show what would be returned for a given geo."""
         app = await self._get_app_or_404(bundle_id)
-        mode_str = app.mode.value if isinstance(app.mode, AppMode) else str(app.mode)
+        mode_str = app.mode.value if hasattr(app.mode, "value") else str(app.mode)
 
         if mode_str == "native":
             return TestInitResponse(mode=mode_str, would_return=None)
