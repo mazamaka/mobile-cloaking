@@ -15,6 +15,7 @@ alembic>=1.14.0
 
 # Admin Panel
 starlette-admin>=0.14.1
+babel>=2.16.0
 
 # Settings & Validation
 pydantic>=2.10.0
