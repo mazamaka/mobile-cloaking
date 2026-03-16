@@ -50,6 +50,12 @@ class App(SQLModel, table=True):
     )
     appstore_url: str | None = Field(default=None)
 
+    # Geo source for client country detection
+    geo_source: GeoSource = Field(
+        default=GeoSource.CLOUDFLARE,
+        sa_column=Column(String(15), nullable=False, default="cloudflare"),
+    )
+
     # Icon
     icon_name: str | None = Field(default=None)
 

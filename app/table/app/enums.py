@@ -10,6 +10,13 @@ class AppMode(str, Enum):
     CASINO = "casino"  # result=url, open WebView with casino
 
 
+class GeoSource(str, Enum):
+    """Source for client geo detection."""
+
+    CLOUDFLARE = "cloudflare"  # cf-ipcountry header (real IP country)
+    DEVICE = "device"  # device.region from iOS settings
+
+
 class UpdateMode(str, Enum):
     """Update enforcement mode for app version checks."""
 

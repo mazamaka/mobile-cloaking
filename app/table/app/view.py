@@ -53,6 +53,12 @@ class AppView(ModelView):
             label="Mode",
             help_text="NATIVE = 200 OK для модераторов, CASINO = редирект на казино",
         ),
+        EnumField(
+            "geo_source",
+            enum=GeoSource,
+            label="Geo Source",
+            help_text="CLOUDFLARE = страна по IP (cf-ipcountry), DEVICE = регион из настроек устройства",
+        ),
         IntegerField(
             "rate_delay_sec",
             label="Rate Delay (sec)",
@@ -116,6 +122,7 @@ class AppView(ModelView):
 
     exclude_fields_from_list = [
         "api_key",
+        "geo_source",
         "appstore_url",
         "icon_name",
         "links",

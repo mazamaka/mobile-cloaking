@@ -271,8 +271,13 @@ class InitService:
 
             raise HTTPException(status_code=401, detail="Invalid API key")
 
-        # Use CF country for geo targeting, fallback to device region
-        geo_region = cf_country or data.device.region
+        # Choose geo source based on app setting
+        from app.table.app.enums import GeoSource
+
+        if app.geo_source == GeoSource.DEVICE:
+            geo_region = data.device.region
+        else:
+            geo_region = cf_country or data.device.region
 
         # Resolve Geo (auto-create if not in DB)
         geo = await self.get_or_create_geo(geo_region)

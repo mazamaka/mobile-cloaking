@@ -1107,6 +1107,19 @@ let appGroups = [];
 let offerGroups = [];
 let currentAppFilter = 'all';
 
+// Convert ISO alpha-2 code to flag emoji (e.g. "HU" -> "🇭🇺")
+function codeToFlag(code) {
+  if (!code || code.length !== 2) return '';
+  return String.fromCodePoint(
+    ...code.toUpperCase().split('').map(c => 0x1F1E6 + c.charCodeAt(0) - 65)
+  );
+}
+
+// Navigate to link edit page in admin
+function editLink(id) {
+  window.location.href = '/admin/link/edit/' + id;
+}
+
 // Collapsible toggle
 window.toggleCollapsible = function(header) {
   header.classList.toggle('open');
@@ -1433,8 +1446,10 @@ function renderMatrix() {
     return;
   }
 
+  // NOTE: All data comes from our own API (trusted server-side), not user input.
+  // Using innerHTML here is safe as geo_code/app_name/offer_name are admin-managed values.
   tbody.innerHTML = filtered.map(row => `
-    <tr data-id="${row.id}">
+    <tr data-id="${row.id}" onclick="editLink(${row.id})" style="cursor:pointer">
       <td>
         <div class="app-cell">
           <span>${row.app_name}</span>
@@ -1444,7 +1459,7 @@ function renderMatrix() {
       <td>
         <span class="geo-badge ${row.geo_is_default ? 'default' : ''}">
           ${row.geo_is_default ? '<i class="fas fa-globe"></i>' : ''}
-          ${row.geo_code}
+          ${codeToFlag(row.geo_code)} ${row.geo_code}
         </span>
       </td>
       <td class="offer-cell">${row.offer_name}</td>
@@ -1454,13 +1469,13 @@ function renderMatrix() {
       </td>
       <td>
         <div class="status-toggle ${row.is_active ? 'active' : ''}"
-             onclick="toggleLink(${row.id})"
+             onclick="event.stopPropagation(); toggleLink(${row.id})"
              title="${row.is_active ? 'Active' : 'Inactive'}">
         </div>
       </td>
       <td>
         <div class="actions-cell">
-          <button class="action-btn delete" onclick="deleteLink(${row.id})" title="Delete">
+          <button class="action-btn delete" onclick="event.stopPropagation(); deleteLink(${row.id})" title="Delete">
             <i class="fas fa-trash"></i>
           </button>
         </div>
