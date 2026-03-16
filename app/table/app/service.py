@@ -1,7 +1,7 @@
 """Service for App management."""
 
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 
 from fastapi import HTTPException
 from sqlalchemy import func, select
@@ -29,6 +29,7 @@ from app.table.geo.model import Geo
 from app.table.group.model import Group, GroupType
 from app.table.link.model import Link
 from app.table.offer.model import Offer
+from app.utils.helpers import get_enum_value
 from app.utils.logger import logger
 
 
@@ -62,12 +63,8 @@ class AppService:
 
     def _app_to_detail(self, app: App) -> AppDetailResponse:
         """Convert App model to detail response."""
-        mode = app.mode.value if hasattr(app.mode, "value") else str(app.mode)
-        update_mode = (
-            app.update_mode.value
-            if hasattr(app.update_mode, "value")
-            else app.update_mode
-        )
+        mode = get_enum_value(app.mode)
+        update_mode = get_enum_value(app.update_mode)
         return AppDetailResponse(
             id=app.id,  # type: ignore[arg-type]
             bundle_id=app.bundle_id,
@@ -244,7 +241,7 @@ class AppService:
             group_id, _ = await self._resolve_group(req.group_name)
             app.group_id = group_id
 
-        app.updated_at = datetime.utcnow()
+        app.updated_at = datetime.now(UTC)
         await self.session.commit()
 
         # Invalidate cache
@@ -257,9 +254,9 @@ class AppService:
     async def switch_mode(self, bundle_id: str, req: AppModeRequest) -> AppModeResponse:
         """Quick mode switch for a single app."""
         app = await self._get_app_or_404(bundle_id)
-        old_mode = app.mode.value if hasattr(app.mode, "value") else str(app.mode)
+        old_mode = get_enum_value(app.mode)
         app.mode = AppMode(req.mode)
-        app.updated_at = datetime.utcnow()
+        app.updated_at = datetime.now(UTC)
         await self.session.commit()
         await cache.invalidate_app(bundle_id)
 
@@ -284,7 +281,7 @@ class AppService:
                 not_found.append(bid)
                 continue
             app.mode = AppMode(req.mode)
-            app.updated_at = datetime.utcnow()
+            app.updated_at = datetime.now(UTC)
             updated += 1
 
         await self.session.commit()
@@ -304,7 +301,7 @@ class AppService:
         """Deactivate app (soft delete)."""
         app = await self._get_app_or_404(bundle_id)
         app.is_active = False
-        app.updated_at = datetime.utcnow()
+        app.updated_at = datetime.now(UTC)
         await self.session.commit()
         await cache.invalidate_app(bundle_id)
 
@@ -365,7 +362,7 @@ class AppService:
     async def test_init(self, bundle_id: str, geo: str) -> TestInitResponse:
         """Dry-run init: show what would be returned for a given geo."""
         app = await self._get_app_or_404(bundle_id)
-        mode_str = app.mode.value if hasattr(app.mode, "value") else str(app.mode)
+        mode_str = get_enum_value(app.mode)
 
         if mode_str == "native":
             return TestInitResponse(mode=mode_str, would_return=None)

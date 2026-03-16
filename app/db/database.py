@@ -83,9 +83,3 @@ db = Database(
     pool_size=SETTINGS.db_pool_size,
     max_overflow=SETTINGS.db_max_overflow,
 )
-
-
-async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    """FastAPI dependency for database session injection."""
-    async for session in db.get_session():
-        yield session

@@ -1,6 +1,6 @@
 """Event model -- analytics events from iOS clients."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, Optional
 
 from sqlalchemy import Column, DateTime
@@ -38,5 +38,5 @@ class Event(SQLModel, table=True):
 
     # Server time
     received_at: datetime = Field(
-        default_factory=datetime.utcnow, sa_type=DateTime
+        default_factory=lambda: datetime.now(UTC), sa_type=DateTime
     )

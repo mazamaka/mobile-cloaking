@@ -125,7 +125,7 @@ async def update_offer(
     session: AsyncSession = Depends(get_db),
 ) -> OfferDetailResponse:
     """Update offer fields."""
-    from datetime import datetime
+    from datetime import UTC, datetime
 
     stmt = select(Offer).where(Offer.id == offer_id)
     result = await session.execute(stmt)
@@ -151,7 +151,7 @@ async def update_offer(
         group = result.scalar_one_or_none()
         offer.group_id = group.id if group else None
 
-    offer.updated_at = datetime.utcnow()
+    offer.updated_at = datetime.now(UTC)
     await session.commit()
 
     return _offer_to_detail(offer)

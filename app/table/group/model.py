@@ -1,6 +1,6 @@
 """Group model -- organizational groups for apps and offers."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import TYPE_CHECKING
 
@@ -30,10 +30,10 @@ class Group(SQLModel, table=True):
     description: str | None = Field(default=None)
     is_active: bool = Field(default=True)
     created_at: datetime = Field(
-        default_factory=datetime.utcnow, sa_type=DateTime
+        default_factory=lambda: datetime.now(UTC), sa_type=DateTime
     )
     updated_at: datetime = Field(
-        default_factory=datetime.utcnow, sa_type=DateTime
+        default_factory=lambda: datetime.now(UTC), sa_type=DateTime
     )
 
     # Relationships

@@ -30,7 +30,7 @@ class InitLogView(ModelView):
         IntegerField(
             "response_code",
             label="Response Code",
-            help_text="HTTP код ответа (200=native, 400=casino)",
+            help_text="HTTP код ответа (всегда 200, result определяет режим)",
         ),
         JSONField(
             "response_body", label="Response Body", help_text="Тело ответа (JSON)"

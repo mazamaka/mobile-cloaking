@@ -1,9 +1,9 @@
 """Link model -- binding between App, Offer, and Geo."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import Column, DateTime, String
+from sqlalchemy import Column, DateTime, String, UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
@@ -20,6 +20,7 @@ class Link(SQLModel, table=True):
     """
 
     __tablename__ = "links"
+    __table_args__ = (UniqueConstraint("app_id", "geo_id", name="uq_link_app_geo"),)
 
     id: int | None = Field(default=None, primary_key=True)
 
@@ -62,7 +63,7 @@ class Link(SQLModel, table=True):
     is_active: bool = Field(default=True, index=True)
 
     created_at: datetime = Field(
-        default_factory=datetime.utcnow, sa_type=DateTime
+        default_factory=lambda: datetime.now(UTC), sa_type=DateTime
     )
 
     def __admin_repr__(self, request: object) -> str:

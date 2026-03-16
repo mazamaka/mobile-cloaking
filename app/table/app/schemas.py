@@ -4,8 +4,19 @@ import re
 
 from pydantic import BaseModel, field_validator
 
+from app.table.app.enums import AppMode
 
 BUNDLE_ID_PATTERN = re.compile(r"^[a-zA-Z0-9.\-]+$")
+
+_ALLOWED_MODES = {e.value for e in AppMode}
+
+
+def _validate_mode_value(v: str) -> str:
+    """Validate mode field value against AppMode enum."""
+    if v not in _ALLOWED_MODES:
+        msg = f"Invalid mode: {v}. Allowed: {', '.join(sorted(_ALLOWED_MODES))}"
+        raise ValueError(msg)
+    return v
 
 
 # --- Registration ---
@@ -43,11 +54,8 @@ class AppRegisterRequest(BaseModel):
     @field_validator("mode")
     @classmethod
     def validate_mode(cls, v: str) -> str:
-        """Validate mode is 'native' or 'casino'."""
-        if v not in ("native", "casino"):
-            msg = "mode must be 'native' or 'casino'"
-            raise ValueError(msg)
-        return v
+        """Validate mode is allowed."""
+        return _validate_mode_value(v)
 
 
 class AppRegisterResponse(BaseModel):
@@ -115,16 +123,15 @@ class AppUpdateRequest(BaseModel):
     @field_validator("mode")
     @classmethod
     def validate_mode(cls, v: str | None) -> str | None:
-        if v is not None and v not in ("native", "casino"):
-            msg = "mode must be 'native' or 'casino'"
-            raise ValueError(msg)
+        if v is not None:
+            _validate_mode_value(v)
         return v
 
     @field_validator("update_mode")
     @classmethod
     def validate_update_mode(cls, v: str | None) -> str | None:
-        if v is not None and v not in ("soft", "hard"):
-            msg = "update_mode must be 'soft' or 'hard'"
+        if v is not None and v not in ("soft", "force"):
+            msg = "update_mode must be 'soft' or 'force'"
             raise ValueError(msg)
         return v
 
@@ -140,10 +147,7 @@ class AppModeRequest(BaseModel):
     @field_validator("mode")
     @classmethod
     def validate_mode(cls, v: str) -> str:
-        if v not in ("native", "casino"):
-            msg = "mode must be 'native' or 'casino'"
-            raise ValueError(msg)
-        return v
+        return _validate_mode_value(v)
 
 
 class AppModeResponse(BaseModel):
@@ -166,10 +170,7 @@ class AppBulkModeRequest(BaseModel):
     @field_validator("mode")
     @classmethod
     def validate_mode(cls, v: str) -> str:
-        if v not in ("native", "casino"):
-            msg = "mode must be 'native' or 'casino'"
-            raise ValueError(msg)
-        return v
+        return _validate_mode_value(v)
 
 
 class AppBulkModeResponse(BaseModel):

@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.admin import stats
 from app.api.v1.deps import get_db, verify_master_key_or_session
 from app.table.group.model import GroupType
+from app.utils.logger import logger
 
 router = APIRouter(
     prefix="/dashboard",
@@ -100,7 +101,8 @@ async def create_new_link(
                 "success": False,
                 "error": "This Geo is already assigned in this App",
             }
-        return {"success": False, "error": str(e)}
+        logger.error(f"Dashboard create_link error: {e}")
+        return {"success": False, "error": "Internal error"}
 
 
 @router.delete("/links/{link_id}")
@@ -155,7 +157,8 @@ async def create_new_app(
         return result
     except Exception as e:
         await session.rollback()
-        return {"success": False, "error": str(e)}
+        logger.error(f"Dashboard create_app error: {e}")
+        return {"success": False, "error": "Internal error"}
 
 
 @router.post("/offers")
@@ -178,7 +181,8 @@ async def create_new_offer(
         return result
     except Exception as e:
         await session.rollback()
-        return {"success": False, "error": str(e)}
+        logger.error(f"Dashboard create_offer error: {e}")
+        return {"success": False, "error": "Internal error"}
 
 
 @router.post("/geos")
@@ -199,7 +203,8 @@ async def create_new_geo(
         return result
     except Exception as e:
         await session.rollback()
-        return {"success": False, "error": str(e)}
+        logger.error(f"Dashboard create_geo error: {e}")
+        return {"success": False, "error": "Internal error"}
 
 
 @router.get("/events-stats")

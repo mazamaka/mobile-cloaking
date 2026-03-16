@@ -39,6 +39,17 @@ class RedisCache:
         """Check if Redis is connected."""
         return self._redis is not None
 
+    async def ping(self) -> bool:
+        """Ping Redis to check connectivity."""
+        if not self._redis:
+            return False
+        try:
+            await self._redis.ping()
+            return True
+        except Exception as e:
+            logger.debug(f"Redis ping error: {e}")
+            return False
+
     # --- App cache ---
 
     def _app_key(self, bundle_id: str) -> str:
@@ -52,8 +63,8 @@ class RedisCache:
             data = await self._redis.get(self._app_key(bundle_id))
             if data:
                 return json.loads(data)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Redis error: {e}")
         return None
 
     async def set_app_dict(self, bundle_id: str, app_data: dict) -> None:
@@ -64,8 +75,8 @@ class RedisCache:
             await self._redis.setex(
                 self._app_key(bundle_id), APP_CACHE_TTL, json.dumps(app_data)
             )
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Redis error: {e}")
 
     async def invalidate_app(self, bundle_id: str) -> None:
         """Remove app from cache."""
@@ -73,8 +84,8 @@ class RedisCache:
             return
         try:
             await self._redis.delete(self._app_key(bundle_id))
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Redis error: {e}")
 
     async def invalidate_all_apps(self) -> None:
         """Remove all apps from cache."""
@@ -90,8 +101,8 @@ class RedisCache:
                     await self._redis.delete(*keys)
                 if cursor == 0:
                     break
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Redis error: {e}")
 
 
 # Global singleton — call cache.connect(url) in lifespan

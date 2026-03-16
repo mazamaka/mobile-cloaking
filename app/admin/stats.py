@@ -11,6 +11,7 @@ from app.table.geo.model import Geo
 from app.table.group.model import Group, GroupType
 from app.table.link.model import Link
 from app.table.offer.model import Offer
+from app.utils.helpers import get_enum_value
 
 
 async def get_dashboard_stats(session: AsyncSession) -> dict:
@@ -93,7 +94,7 @@ async def get_apps_list(session: AsyncSession) -> list[dict]:
             "id": app.id,
             "name": app.name or app.bundle_id,
             "bundle_id": app.bundle_id,
-            "mode": app.mode.value if hasattr(app.mode, "value") else app.mode,
+            "mode": get_enum_value(app.mode),
             "group": app.group.name if app.group else None,
         }
         for app in apps
@@ -162,9 +163,7 @@ async def get_link_matrix(session: AsyncSession) -> list[dict]:
             "id": link.id,
             "app_id": link.app_id,
             "app_name": link.app.name or link.app.bundle_id if link.app else None,
-            "app_mode": link.app.mode.value
-            if link.app and hasattr(link.app.mode, "value")
-            else (link.app.mode if link.app else None),
+            "app_mode": get_enum_value(link.app.mode) if link.app else None,
             "offer_id": link.offer_id,
             "offer_name": link.offer.name if link.offer else None,
             "offer_priority": link.offer.priority if link.offer else None,
@@ -242,7 +241,7 @@ async def get_groups_list(
         {
             "id": group.id,
             "name": group.name,
-            "type": group.type.value if hasattr(group.type, "value") else group.type,
+            "type": get_enum_value(group.type),
         }
         for group in groups
     ]
@@ -321,11 +320,11 @@ async def create_geo(
 
 async def get_events_stats(session: AsyncSession) -> dict:
     """Get events statistics for dashboard."""
-    from datetime import datetime, timedelta
+    from datetime import UTC, datetime, timedelta
 
     from app.table.event.model import Event
 
-    now = datetime.utcnow()
+    now = datetime.now(UTC)
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
     week_ago = now - timedelta(days=7)
     month_ago = now - timedelta(days=30)

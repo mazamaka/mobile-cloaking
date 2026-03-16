@@ -160,14 +160,13 @@ API requires no auth. Client is identified by `internal_id` (UUID from Keychain)
             checks["db"] = f"error: {e}"
 
         # Redis check
-        try:
-            if cache.available:
-                await cache._redis.ping()  # type: ignore[union-attr]
+        if cache.available:
+            if await cache.ping():
                 checks["redis"] = "ok"
             else:
-                checks["redis"] = "disconnected"
-        except Exception as e:
-            checks["redis"] = f"error: {e}"
+                checks["redis"] = "error: ping failed"
+        else:
+            checks["redis"] = "disconnected"
 
         all_ok = all(v == "ok" for v in checks.values())
         return {"status": "ok" if all_ok else "degraded", "checks": checks}

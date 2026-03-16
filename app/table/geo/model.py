@@ -1,6 +1,6 @@
 """Geo model -- geographic regions for offer targeting."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime
@@ -35,10 +35,10 @@ class Geo(SQLModel, table=True):
 
     # Timestamps
     created_at: datetime = Field(
-        default_factory=datetime.utcnow, sa_type=DateTime
+        default_factory=lambda: datetime.now(UTC), sa_type=DateTime
     )
     updated_at: datetime = Field(
-        default_factory=datetime.utcnow, sa_type=DateTime
+        default_factory=lambda: datetime.now(UTC), sa_type=DateTime
     )
 
     # Relationships
