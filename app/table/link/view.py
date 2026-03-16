@@ -6,13 +6,13 @@ from starlette_admin import (
     IntegerField,
     StringField,
 )
-from starlette_admin.contrib.sqlmodel import ModelView
 from starlette_admin.exceptions import FormValidationError
 
+from app.admin.base_view import BaseModelView
 from app.table.link.model import Link
 
 
-class LinkView(ModelView):
+class LinkView(BaseModelView):
     """Admin view для связок App + Offer + Geo."""
 
     name = "Link"

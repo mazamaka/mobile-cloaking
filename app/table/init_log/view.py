@@ -1,11 +1,10 @@
 from starlette.requests import Request
 from starlette_admin import DateTimeField, HasOne, IntegerField, JSONField, StringField
-from starlette_admin.contrib.sqlmodel import ModelView
-
+from app.admin.base_view import BaseModelView
 from app.table.init_log.model import InitLog
 
 
-class InitLogView(ModelView):
+class InitLogView(BaseModelView):
     """Admin view for InitLog model."""
 
     name = "Init Log"

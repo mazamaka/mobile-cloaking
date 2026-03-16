@@ -1,11 +1,10 @@
 from starlette.requests import Request
 from starlette_admin import DateTimeField, HasOne, IntegerField, JSONField, StringField
-from starlette_admin.contrib.sqlmodel import ModelView
-
+from app.admin.base_view import BaseModelView
 from app.table.event.model import Event
 
 
-class EventView(ModelView):
+class EventView(BaseModelView):
     """Admin view for Event model."""
 
     name = "Event"

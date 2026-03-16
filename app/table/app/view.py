@@ -9,14 +9,14 @@ from starlette_admin import (
     StringField,
     row_action,  # noqa: F401
 )
-from starlette_admin.contrib.sqlmodel import ModelView
 from starlette_admin.exceptions import ActionFailed
 
+from app.admin.base_view import BaseModelView
 from app.table.app.enums import AppMode, GeoSource, UpdateMode
 from app.table.app.model import App
 
 
-class AppView(ModelView):
+class AppView(BaseModelView):
     """Admin view for App model."""
 
     name = "App"

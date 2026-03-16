@@ -1,12 +1,12 @@
 from starlette.requests import Request
 from starlette_admin import BooleanField, DateTimeField, IntegerField, StringField
-from starlette_admin.contrib.sqlmodel import ModelView
 from starlette_admin.exceptions import ActionFailed
 
+from app.admin.base_view import BaseModelView
 from app.table.geo.model import Geo
 
 
-class GeoView(ModelView):
+class GeoView(BaseModelView):
     """Admin view for Geo model."""
 
     name = "Geo"

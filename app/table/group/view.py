@@ -6,12 +6,11 @@ from starlette_admin import (
     StringField,
     TextAreaField,
 )
-from starlette_admin.contrib.sqlmodel import ModelView
-
+from app.admin.base_view import BaseModelView
 from app.table.group.model import Group, GroupType
 
 
-class GroupView(ModelView):
+class GroupView(BaseModelView):
     """Admin view for Group model."""
 
     name = "Group"

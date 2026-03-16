@@ -7,13 +7,12 @@ from starlette_admin import (
     IntegerField,
     StringField,
 )
-from starlette_admin.contrib.sqlmodel import ModelView
-
+from app.admin.base_view import BaseModelView
 from app.schemas.common import ATTStatus
 from app.table.client.model import Client
 
 
-class ClientView(ModelView):
+class ClientView(BaseModelView):
     """Admin view for Client model."""
 
     name = "Client"
