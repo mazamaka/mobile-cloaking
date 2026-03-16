@@ -12,7 +12,11 @@ from app.utils.helpers import utc_now
 
 if TYPE_CHECKING:
     from starlette.requests import Request
-from app.table.app.enums import AppMode
+
+
+from fastapi import HTTPException  # noqa: F401
+
+from app.table.app.enums import AppMode, GeoSource
 from app.table.app.model import App
 from app.table.client.model import Client
 from app.table.client.schemas import (
@@ -263,18 +267,12 @@ class InitService:
         app = await self.get_app(data.app.bundle_id)
 
         if not app:
-            from fastapi import HTTPException
-
             raise HTTPException(status_code=404, detail="App not found")
 
         if app.api_key and app.api_key != api_key:
-            from fastapi import HTTPException
-
             raise HTTPException(status_code=401, detail="Invalid API key")
 
         # Choose geo source based on app setting
-        from app.table.app.enums import GeoSource
-
         if app.geo_source == GeoSource.DEVICE:
             geo_region = data.device.region
         else:
@@ -323,7 +321,7 @@ class InitService:
             cf_country=cf_country,
             bundle_id=data.app.bundle_id,
             result_mode=result_mode,
-            geo_source=app.geo_source.value,
+            geo_source=getattr(app.geo_source, "value", app.geo_source),
             request_headers=headers_dict,
             request_body=data.model_dump(mode="json"),
             response_code=200,

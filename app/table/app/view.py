@@ -161,16 +161,11 @@ class AppView(ModelView):
         app = result.scalar_one_or_none()
         if not app:
             raise ActionFailed("App not found")
-        old_val = str(
-            app.geo_source.value
-            if isinstance(app.geo_source, GeoSource)
-            else app.geo_source
-        )
-        is_cloudflare = old_val == GeoSource.CLOUDFLARE.value
-        app.geo_source = GeoSource.DEVICE if is_cloudflare else GeoSource.CLOUDFLARE
-        new_val = app.geo_source.value
+        is_cloudflare = app.geo_source == GeoSource.CLOUDFLARE
+        new_source = GeoSource.DEVICE if is_cloudflare else GeoSource.CLOUDFLARE
+        app.geo_source = new_source
         await session.commit()
-        return f"Geo source: {old_val} → {new_val}"
+        return f"Geo source → {new_source.value}"
 
     async def before_delete(self, request: Request, obj: App) -> None:
         """Prevent deletion if app has associated clients or offer-geo links."""
