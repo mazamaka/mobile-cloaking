@@ -11,6 +11,7 @@ from app.utils.helpers import utc_now
 
 if TYPE_CHECKING:
     from app.table.client.model import Client
+    from app.table.geo.model import Geo  # noqa: F401
 
 
 class InitLog(SQLModel, table=True):
@@ -25,6 +26,10 @@ class InitLog(SQLModel, table=True):
     client: Optional["Client"] = Relationship(
         sa_relationship_kwargs={"lazy": "selectin"}
     )
+
+    # Geo relation (resolved geo at request time)
+    geo_id: int | None = Field(default=None, foreign_key="geos.id", index=True)
+    geo: Optional["Geo"] = Relationship(sa_relationship_kwargs={"lazy": "selectin"})
 
     # Quick-filter fields (denormalized from JSONB for fast queries)
     ip: str | None = Field(default=None, max_length=45)

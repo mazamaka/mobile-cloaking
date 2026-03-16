@@ -19,6 +19,12 @@ class InitLogView(ModelView):
             label="Client",
             help_text="Клиент, выполнивший init запрос",
         ),
+        HasOne(
+            "geo",
+            identity="geo",
+            label="Geo",
+            help_text="Разрешённый регион клиента на момент запроса",
+        ),
         StringField("ip", label="IP", help_text="IP клиента (cf-connecting-ip)"),
         StringField(
             "cf_country",

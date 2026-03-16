@@ -319,6 +319,7 @@ class InitService:
         # Save init log
         init_log = InitLog(
             client_id=client.id,
+            geo_id=geo.id,
             ip=client_ip,
             cf_country=cf_country,
             bundle_id=data.app.bundle_id,
