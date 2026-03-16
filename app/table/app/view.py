@@ -11,7 +11,7 @@ from starlette_admin import (
 from starlette_admin.contrib.sqlmodel import ModelView
 from starlette_admin.exceptions import ActionFailed
 
-from app.table.app.enums import AppMode, UpdateMode
+from app.table.app.enums import AppMode, GeoSource, UpdateMode
 from app.table.app.model import App
 
 
