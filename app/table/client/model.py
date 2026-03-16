@@ -32,7 +32,10 @@ class Client(SQLModel, table=True):
     # Device info
     language: str
     timezone: str
-    region: str
+    region: str  # from iOS device settings
+    cf_country: str | None = Field(
+        default=None, max_length=10, index=True
+    )  # from CF header
 
     # Privacy - stored as VARCHAR in DB
     att_status: ATTStatus = Field(sa_column=Column(String(20), nullable=False))
@@ -46,10 +49,6 @@ class Client(SQLModel, table=True):
     push_enabled: bool = Field(default=False)
 
     # Activity
-    first_seen_at: datetime = Field(
-        default_factory=utc_now, sa_type=DateTime
-    )
-    last_seen_at: datetime = Field(
-        default_factory=utc_now, sa_type=DateTime
-    )
+    first_seen_at: datetime = Field(default_factory=utc_now, sa_type=DateTime)
+    last_seen_at: datetime = Field(default_factory=utc_now, sa_type=DateTime)
     sessions_count: int = Field(default=1)

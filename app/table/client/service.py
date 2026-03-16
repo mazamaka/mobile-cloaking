@@ -60,7 +60,11 @@ class InitService:
         return app
 
     async def get_or_create_client(
-        self, app: App, data: InitRequest
+        self,
+        app: App,
+        data: InitRequest,
+        *,
+        cf_country: str | None = None,
     ) -> tuple[Client, bool]:
         """Get existing client or create a new one.
 
@@ -81,6 +85,7 @@ class InitService:
                 language=data.device.language,
                 timezone=data.device.timezone,
                 region=data.device.region,
+                cf_country=cf_country,
                 att_status=data.privacy.att,
                 idfa=data.ids.idfa,
                 appsflyer_id=data.attribution.appsflyer_id
@@ -94,6 +99,7 @@ class InitService:
             client.language = data.device.language
             client.timezone = data.device.timezone
             client.region = data.device.region
+            client.cf_country = cf_country
             client.att_status = data.privacy.att
             client.idfa = data.ids.idfa
             if data.attribution:
@@ -217,6 +223,19 @@ class InitService:
         api_key: str | None = None,
     ) -> InitResponse:
         """Process init request: resolve app, client, offer, and build response."""
+        from app.table.init_log.model import InitLog
+
+        # Extract CF headers
+        cf_country: str | None = None
+        client_ip: str | None = None
+        headers_dict: dict[str, str] = {}
+        if request:
+            cf_country = request.headers.get("cf-ipcountry")
+            client_ip = request.headers.get("cf-connecting-ip")
+            if not client_ip and request.client:
+                client_ip = request.client.host
+            headers_dict = dict(request.headers)
+
         app = await self.get_app(data.app.bundle_id)
 
         if not app:
@@ -229,13 +248,18 @@ class InitService:
 
             raise HTTPException(status_code=401, detail="Invalid API key")
 
-        client, is_new = await self.get_or_create_client(app, data)
+        client, is_new = await self.get_or_create_client(
+            app, data, cf_country=cf_country
+        )
+
+        # Use CF country for geo targeting, fallback to device region
+        geo_region = cf_country or data.device.region
 
         offer_link = None
         if app.mode == AppMode.CASINO:
             offer_link = await self.get_offer_for_geo(
                 app.id,
-                data.device.region,
+                geo_region,
                 language=data.device.language,
                 app_version=data.app.version,
                 att_status=data.privacy.att.value,
@@ -251,30 +275,28 @@ class InitService:
             app_version=data.app.version,
         )
 
-        # --- DEBUG logging ---
-        client_ip = None
-        headers_dict: dict[str, str] = {}
-        if request:
-            client_ip = request.client.host if request.client else None
-            headers_dict = dict(request.headers)
+        result_mode = "casino" if response.result else "native"
 
         logger.info(
-            f"[DEBUG INIT] === /client/init ===\n"
-            f"  IP: {client_ip}\n"
-            f"  Headers: {headers_dict}\n"
-            f"  App: bundle_id={data.app.bundle_id}, version={data.app.version}\n"
-            f"  Device: lang={data.device.language}, tz={data.device.timezone}, "
-            f"region={data.device.region}\n"
-            f"  Privacy: att={data.privacy.att}\n"
-            f"  IDs: internal_id={data.ids.internal_id}, idfa={data.ids.idfa}\n"
-            f"  Attribution: {data.attribution}\n"
-            f"  Push: {data.push}\n"
-            f"  --- Result ---\n"
-            f"  App mode={app.mode}, client={client.internal_id}, new={is_new}\n"
-            f"  Offer={offer.name if offer else None}, "
-            f"casino={'yes' if response.result else 'no'}\n"
-            f"  Response result={response.result}"
+            f"Init: app={app.bundle_id}, client={client.internal_id}, "
+            f"mode={app.mode}, geo={geo_region} (device={data.device.region}), "
+            f"offer={offer.name if offer else None}, "
+            f"{result_mode}, new={is_new}, ip={client_ip}"
         )
+
+        # Save init log
+        init_log = InitLog(
+            client_id=client.id,
+            ip=client_ip,
+            cf_country=cf_country,
+            bundle_id=data.app.bundle_id,
+            result_mode=result_mode,
+            request_headers=headers_dict,
+            request_body=data.model_dump(mode="json"),
+            response_code=200,
+            response_body=response.model_dump(mode="json"),
+        )
+        self.session.add(init_log)
 
         return response
 

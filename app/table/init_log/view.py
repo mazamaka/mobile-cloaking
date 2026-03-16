@@ -1,5 +1,5 @@
 from starlette.requests import Request
-from starlette_admin import DateTimeField, HasOne, IntegerField, JSONField
+from starlette_admin import DateTimeField, HasOne, IntegerField, JSONField, StringField
 from starlette_admin.contrib.sqlmodel import ModelView
 
 from app.table.init_log.model import InitLog
@@ -18,6 +18,18 @@ class InitLogView(ModelView):
             identity="client",
             label="Client",
             help_text="Клиент, выполнивший init запрос",
+        ),
+        StringField("ip", label="IP", help_text="IP клиента (cf-connecting-ip)"),
+        StringField(
+            "cf_country",
+            label="CF Country",
+            help_text="Страна по Cloudflare (cf-ipcountry)",
+        ),
+        StringField("bundle_id", label="Bundle ID", help_text="Bundle ID приложения"),
+        StringField(
+            "result_mode",
+            label="Result",
+            help_text="Результат: casino (URL) или native (null)",
         ),
         JSONField(
             "request_headers",
@@ -39,14 +51,14 @@ class InitLogView(ModelView):
             "created_at",
             label="Created At",
             help_text="Время создания записи",
-            output_format="dd.MM.yyyy HH:mm",
+            output_format="dd.MM.yyyy HH:mm:ss",
         ),
     ]
 
     exclude_fields_from_list = ["request_headers", "request_body", "response_body"]
 
-    searchable_fields = []
-    sortable_fields = ["id", "response_code", "created_at"]
+    searchable_fields = ["ip", "cf_country", "bundle_id"]
+    sortable_fields = ["id", "cf_country", "bundle_id", "result_mode", "created_at"]
 
     # Read-only view (logs are created automatically)
     def can_create(self, request: Request) -> bool:

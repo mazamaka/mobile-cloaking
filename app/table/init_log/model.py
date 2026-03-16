@@ -26,6 +26,12 @@ class InitLog(SQLModel, table=True):
         sa_relationship_kwargs={"lazy": "selectin"}
     )
 
+    # Quick-filter fields (denormalized from JSONB for fast queries)
+    ip: str | None = Field(default=None, max_length=45)
+    cf_country: str | None = Field(default=None, max_length=10, index=True)
+    bundle_id: str | None = Field(default=None, max_length=255, index=True)
+    result_mode: str | None = Field(default=None, max_length=10)  # "casino" / "native"
+
     # Request data
     request_headers: dict[str, Any] = Field(sa_column=Column(JSONB))
     request_body: dict[str, Any] = Field(sa_column=Column(JSONB))
@@ -35,6 +41,4 @@ class InitLog(SQLModel, table=True):
     response_body: dict[str, Any] = Field(sa_column=Column(JSONB))
 
     # Timestamp
-    created_at: datetime = Field(
-        default_factory=utc_now, sa_type=DateTime
-    )
+    created_at: datetime = Field(default_factory=utc_now, sa_type=DateTime)
