@@ -7,7 +7,7 @@ from starlette_admin import (
     HasOne,
     IntegerField,
     StringField,
-    action,  # noqa: F401
+    row_action,  # noqa: F401
 )
 from starlette_admin.contrib.sqlmodel import ModelView
 from starlette_admin.exceptions import ActionFailed
@@ -143,34 +143,32 @@ class AppView(ModelView):
         "created_at",
     ]
 
-    actions = ["toggle_geo_source"]
-
-    @action(  # type: ignore[misc]
+    @row_action(  # type: ignore[misc]
         name="toggle_geo_source",
         text="Toggle Geo Source",
-        confirmation="Переключить источник гео для выбранных приложений? (Cloudflare ↔ Device)",
+        confirmation="Переключить источник гео? (Cloudflare ↔ Device)",
         submit_btn_text="Переключить",
         submit_btn_class="btn-warning",
+        icon_class="fas fa-globe",
     )
-    async def toggle_geo_source(self, request: Request, pks: list[str]) -> str:
-        """Toggle geo_source between CLOUDFLARE and DEVICE for selected apps."""
+    async def toggle_geo_source(self, request: Request, pk: str) -> str:
+        """Toggle geo_source between CLOUDFLARE and DEVICE."""
         from sqlalchemy import select
 
         session = request.state.session
-        toggled = 0
-        for pk in pks:
-            stmt = select(App).where(App.id == int(pk))
-            result = await session.execute(stmt)
-            app = result.scalar_one_or_none()
-            if app:
-                app.geo_source = (
-                    GeoSource.DEVICE
-                    if app.geo_source == GeoSource.CLOUDFLARE
-                    else GeoSource.CLOUDFLARE
-                )
-                toggled += 1
+        stmt = select(App).where(App.id == int(pk))
+        result = await session.execute(stmt)
+        app = result.scalar_one_or_none()
+        if not app:
+            raise ActionFailed("App not found")
+        old = app.geo_source
+        app.geo_source = (
+            GeoSource.DEVICE
+            if app.geo_source == GeoSource.CLOUDFLARE
+            else GeoSource.CLOUDFLARE
+        )
         await session.commit()
-        return f"Geo source переключён для {toggled} приложений"
+        return f"Geo source: {old.value} → {app.geo_source.value}"
 
     async def before_delete(self, request: Request, obj: App) -> None:
         """Prevent deletion if app has associated clients or offer-geo links."""
