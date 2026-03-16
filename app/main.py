@@ -78,6 +78,16 @@ API requires no auth. Client is identified by `internal_id` (UUID from Keychain)
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
     app.add_middleware(SlowAPIMiddleware)
 
+    # Session middleware (shares session with admin panel for dashboard API)
+    from starlette.middleware.sessions import SessionMiddleware
+
+    app.add_middleware(
+        SessionMiddleware,
+        secret_key=SETTINGS.auth_secret,
+        same_site="lax",
+        https_only=False,
+    )
+
     # Trust proxy headers (X-Forwarded-Proto, X-Forwarded-For)
     trusted = (
         SETTINGS.trusted_hosts.split(",") if SETTINGS.trusted_hosts != "*" else ["*"]

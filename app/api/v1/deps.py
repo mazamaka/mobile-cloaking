@@ -31,6 +31,28 @@ async def verify_master_key(
     return x_master_key
 
 
+async def verify_master_key_or_session(
+    request: Request,
+    x_master_key: str | None = Header(None, alias="X-Master-Key"),
+) -> str:
+    """Verify X-Master-Key OR admin session cookie."""
+    if (
+        x_master_key
+        and SETTINGS.master_api_key
+        and x_master_key == SETTINGS.master_api_key
+    ):
+        return x_master_key
+
+    username = request.session.get("username") if hasattr(request, "session") else None
+    if username == SETTINGS.admin_login:
+        return f"session:{username}"
+
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid master key or session",
+    )
+
+
 @dataclass
 class RequestHeaders:
     """Parsed request headers."""

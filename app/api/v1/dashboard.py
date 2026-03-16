@@ -5,13 +5,13 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.admin import stats
-from app.api.v1.deps import get_db, verify_master_key
+from app.api.v1.deps import get_db, verify_master_key_or_session
 from app.table.group.model import GroupType
 
 router = APIRouter(
     prefix="/dashboard",
     tags=["dashboard"],
-    dependencies=[Depends(verify_master_key)],
+    dependencies=[Depends(verify_master_key_or_session)],
 )
 
 
