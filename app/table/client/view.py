@@ -1,5 +1,12 @@
 from starlette.requests import Request
-from starlette_admin import BooleanField, EnumField, HasOne, IntegerField, StringField
+from starlette_admin import (
+    BooleanField,
+    DateTimeField,
+    EnumField,
+    HasOne,
+    IntegerField,
+    StringField,
+)
 from starlette_admin.contrib.sqlmodel import ModelView
 
 from app.schemas.common import ATTStatus
@@ -56,12 +63,12 @@ class ClientView(ModelView):
             label="Push Enabled",
             help_text="Разрешены ли Push-уведомления",
         ),
-        StringField(
+        DateTimeField(
             "first_seen_at",
             label="First Seen At",
             help_text="Дата первого запроса клиента",
         ),
-        StringField(
+        DateTimeField(
             "last_seen_at",
             label="Last Seen At",
             help_text="Дата последнего запроса клиента",

@@ -1,5 +1,5 @@
 from starlette.requests import Request
-from starlette_admin import HasOne, IntegerField, JSONField, StringField
+from starlette_admin import DateTimeField, HasOne, IntegerField, JSONField
 from starlette_admin.contrib.sqlmodel import ModelView
 
 from app.table.init_log.model import InitLog
@@ -35,7 +35,7 @@ class InitLogView(ModelView):
         JSONField(
             "response_body", label="Response Body", help_text="Тело ответа (JSON)"
         ),
-        StringField(
+        DateTimeField(
             "created_at", label="Created At", help_text="Время создания записи"
         ),
     ]

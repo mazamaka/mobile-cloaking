@@ -1,5 +1,5 @@
 from starlette.requests import Request
-from starlette_admin import BooleanField, IntegerField, StringField
+from starlette_admin import BooleanField, DateTimeField, IntegerField, StringField
 from starlette_admin.contrib.sqlmodel import ModelView
 from starlette_admin.exceptions import ActionFailed
 
@@ -32,10 +32,10 @@ class GeoView(ModelView):
             label="Active",
             help_text="Активен ли регион (неактивные игнорируются)",
         ),
-        StringField(
+        DateTimeField(
             "created_at", label="Created At", help_text="Дата и время создания записи"
         ),
-        StringField(
+        DateTimeField(
             "updated_at",
             label="Updated At",
             help_text="Дата и время последнего обновления",

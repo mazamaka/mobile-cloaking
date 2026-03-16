@@ -1,5 +1,12 @@
 from starlette.requests import Request
-from starlette_admin import BooleanField, HasMany, HasOne, IntegerField, StringField
+from starlette_admin import (
+    BooleanField,
+    DateTimeField,
+    HasMany,
+    HasOne,
+    IntegerField,
+    StringField,
+)
 from starlette_admin.contrib.sqlmodel import ModelView
 from starlette_admin.exceptions import ActionFailed
 
@@ -47,10 +54,10 @@ class OfferView(ModelView):
             label="Links",
             help_text="Связки оффера с приложениями и гео",
         ),
-        StringField(
+        DateTimeField(
             "created_at", label="Created At", help_text="Дата и время создания записи"
         ),
-        StringField(
+        DateTimeField(
             "updated_at",
             label="Updated At",
             help_text="Дата и время последнего обновления",

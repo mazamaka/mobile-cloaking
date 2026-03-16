@@ -1,5 +1,5 @@
 from starlette.requests import Request
-from starlette_admin import HasOne, IntegerField, JSONField, StringField
+from starlette_admin import DateTimeField, HasOne, IntegerField, JSONField, StringField
 from starlette_admin.contrib.sqlmodel import ModelView
 
 from app.table.event.model import Event
@@ -25,7 +25,7 @@ class EventView(ModelView):
             label="Event Name",
             help_text="Название события (screen_view, button_click и т.д.)",
         ),
-        StringField(
+        DateTimeField(
             "event_ts", label="Event Time", help_text="Время события на устройстве"
         ),
         JSONField(
@@ -38,7 +38,7 @@ class EventView(ModelView):
             label="App Version",
             help_text="Версия приложения при отправке события",
         ),
-        StringField(
+        DateTimeField(
             "received_at",
             label="Received At",
             help_text="Время получения события сервером",

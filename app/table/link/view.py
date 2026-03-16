@@ -1,5 +1,11 @@
 from starlette.requests import Request
-from starlette_admin import BooleanField, HasOne, IntegerField, StringField
+from starlette_admin import (
+    BooleanField,
+    DateTimeField,
+    HasOne,
+    IntegerField,
+    StringField,
+)
 from starlette_admin.contrib.sqlmodel import ModelView
 from starlette_admin.exceptions import FormValidationError
 
@@ -82,7 +88,7 @@ class LinkView(ModelView):
             label="Active",
             help_text="Активна ли связка (неактивные игнорируются)",
         ),
-        StringField(
+        DateTimeField(
             "created_at", label="Created At", help_text="Дата и время создания записи"
         ),
     ]

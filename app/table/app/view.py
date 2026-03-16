@@ -1,6 +1,7 @@
 from starlette.requests import Request
 from starlette_admin import (
     BooleanField,
+    DateTimeField,
     EnumField,
     HasMany,
     HasOne,
@@ -99,10 +100,10 @@ class AppView(ModelView):
             label="Links",
             help_text="Связки приложения с офферами и гео",
         ),
-        StringField(
+        DateTimeField(
             "created_at", label="Created At", help_text="Дата и время создания записи"
         ),
-        StringField(
+        DateTimeField(
             "updated_at",
             label="Updated At",
             help_text="Дата и время последнего обновления",

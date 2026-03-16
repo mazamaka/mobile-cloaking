@@ -1,5 +1,6 @@
 from starlette_admin import (
     BooleanField,
+    DateTimeField,
     EnumField,
     IntegerField,
     StringField,
@@ -33,10 +34,10 @@ class GroupView(ModelView):
             help_text="Описание группы (опционально)",
         ),
         BooleanField("is_active", label="Active", help_text="Активна ли группа"),
-        StringField(
+        DateTimeField(
             "created_at", label="Created At", help_text="Дата и время создания записи"
         ),
-        StringField(
+        DateTimeField(
             "updated_at",
             label="Updated At",
             help_text="Дата и время последнего обновления",
