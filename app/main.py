@@ -2,10 +2,11 @@
 
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -18,6 +19,8 @@ from app.db.database import db
 from app.ratelimit import limiter
 from app.utils.logger import logger
 from config import SETTINGS
+
+STATIC_DIR = Path(__file__).parent / "static"
 
 
 @asynccontextmanager
@@ -95,6 +98,10 @@ API requires no auth. Client is identified by `internal_id` (UUID from Keychain)
             "Content-Type",
         ],
     )
+
+    @app.get("/favicon.ico", include_in_schema=False)
+    async def favicon() -> FileResponse:
+        return FileResponse(STATIC_DIR / "favicon.ico", media_type="image/x-icon")
 
     @app.get("/", include_in_schema=False)
     async def root_redirect() -> RedirectResponse:
