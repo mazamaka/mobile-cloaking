@@ -5,7 +5,14 @@ from starlette.middleware import Middleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette_admin import DropDown
 from starlette_admin.contrib.sqlmodel import Admin
+from starlette_admin.i18n import TimezoneConfig
 from starlette_admin.views import CustomView, Link as AdminLink
+
+TIMEZONE_CONFIG = TimezoneConfig(
+    default_timezone="Europe/Kiev",
+    database_timezone="UTC",
+    timezone_switcher=["Europe/Kiev", "UTC"],
+)
 
 from app.admin.auth.provider import CustomAuthProvider
 
@@ -45,6 +52,7 @@ def create_admin() -> Admin:
         base_url="/admin",
         favicon_url="/favicon.ico?v=2",
         templates_dir=str(TEMPLATES_DIR),
+        timezone_config=TIMEZONE_CONFIG,
         index_view=CustomView(
             label="Dashboard",
             icon="fas fa-chart-line",
