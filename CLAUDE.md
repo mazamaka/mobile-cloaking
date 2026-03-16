@@ -50,19 +50,33 @@ alembic downgrade -1
 ```
 app/
 ├── main.py                 # create_app() factory, lifespan, health endpoints
-├── admin/panel.py          # Starlette Admin setup
-├── api/v1/router.py        # APIRouter prefix="/api/v1"
+├── ratelimit.py            # SlowAPI limiter (Redis-backed)
+├── admin/
+│   ├── panel.py            # Starlette Admin setup, TimezoneConfig
+│   ├── stats.py            # Dashboard CRUD/stats
+│   ├── auth/provider.py    # Session auth (login/password)
+│   └── templates/          # base.html, layout.html (dark theme), dashboard.html (SPA)
+├── api/v1/
+│   ├── router.py           # Агрегатор sub-routers
+│   ├── deps.py             # get_db, verify_master_key, verify_master_key_or_session
+│   └── dashboard.py        # Dashboard REST API
+├── cache/redis.py          # RedisCache singleton
 ├── db/database.py          # AsyncEngine + AsyncSession (asyncpg)
+├── schemas/common.py       # ATTStatus enum
+├── utils/
+│   ├── helpers.py          # get_enum_value() и общие хелперы
+│   ├── logger.py           # Loguru setup
+│   └── version.py          # Semver comparison
 └── table/                  # Каждая таблица = папка с model/view/route/service
-    ├── app/                # Приложения (bundle_id, mode, настройки)
-    ├── offer/              # Офферы казино (name, url, priority)
-    ├── geo/                # Регионы (code, is_default)
-    ├── group/              # Группы для организации App и Offer
-    ├── link/               # Связка App ↔ Offer ↔ Geo (одно гео = один оффер)
-    ├── client/             # Устройства пользователей
+    ├── app/                # Приложения (model, view, route, service, schemas, enums)
+    ├── offer/              # Офферы (model, view, route, schemas)
+    ├── geo/                # Регионы (model, view, route, schemas)
+    ├── group/              # Группы (model, view)
+    ├── link/               # Связка App ↔ Offer ↔ Geo (model, view)
+    ├── client/             # Устройства (model, view, route, service, schemas)
     │   └── service.py      # InitService + DecisionEngine (основная логика)
-    ├── event/              # Аналитические события
-    └── init_log/           # Логи запросов /client/init
+    ├── event/              # События (model, view, route, service, schemas)
+    └── init_log/           # Логи запросов (model, view)
 ```
 
 **Паттерн table/:** Каждая сущность имеет свою папку с:
