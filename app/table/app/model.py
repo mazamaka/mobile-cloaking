@@ -1,12 +1,14 @@
 """App model -- iOS applications managed by the system."""
 
-from datetime import UTC, datetime
+from datetime import datetime
+
 from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import Column, DateTime, String
 from sqlmodel import Field, Relationship, SQLModel
 
 from app.table.app.enums import AppMode, UpdateMode
+from app.utils.helpers import utc_now
 
 if TYPE_CHECKING:
     from app.table.group.model import Group
@@ -53,12 +55,8 @@ class App(SQLModel, table=True):
 
     # Meta
     is_active: bool = Field(default=True)
-    created_at: datetime = Field(
-        default_factory=lambda: datetime.now(UTC), sa_type=DateTime
-    )
-    updated_at: datetime = Field(
-        default_factory=lambda: datetime.now(UTC), sa_type=DateTime
-    )
+    created_at: datetime = Field(default_factory=utc_now, sa_type=DateTime)
+    updated_at: datetime = Field(default_factory=utc_now, sa_type=DateTime)
 
     # Relationships
     links: list["Link"] = Relationship(

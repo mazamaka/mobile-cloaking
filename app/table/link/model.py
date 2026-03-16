@@ -1,10 +1,12 @@
 """Link model -- binding between App, Offer, and Geo."""
 
-from datetime import UTC, datetime
+from datetime import datetime
+
 from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import Column, DateTime, String, UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
+from app.utils.helpers import utc_now
 
 if TYPE_CHECKING:
     from app.table.app.model import App
@@ -63,7 +65,7 @@ class Link(SQLModel, table=True):
     is_active: bool = Field(default=True, index=True)
 
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(UTC), sa_type=DateTime
+        default_factory=utc_now, sa_type=DateTime
     )
 
     def __admin_repr__(self, request: object) -> str:

@@ -1,6 +1,12 @@
 """Shared utility helpers."""
 
+from datetime import UTC, datetime
 from typing import Any
+
+
+def utc_now() -> datetime:
+    """Return current UTC time as naive datetime (for DB columns without timezone)."""
+    return datetime.now(UTC).replace(tzinfo=None)
 
 
 def get_enum_value(val: Any) -> Any:

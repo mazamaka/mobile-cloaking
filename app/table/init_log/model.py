@@ -1,11 +1,13 @@
 """InitLog model -- raw init request/response logs."""
 
-from datetime import UTC, datetime
+from datetime import datetime
+
 from typing import TYPE_CHECKING, Any, Optional
 
 from sqlalchemy import Column, DateTime
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, Relationship, SQLModel
+from app.utils.helpers import utc_now
 
 if TYPE_CHECKING:
     from app.table.client.model import Client
@@ -34,5 +36,5 @@ class InitLog(SQLModel, table=True):
 
     # Timestamp
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(UTC), sa_type=DateTime
+        default_factory=utc_now, sa_type=DateTime
     )

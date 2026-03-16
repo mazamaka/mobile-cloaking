@@ -5,6 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.deps import get_db, verify_master_key
+from app.utils.helpers import utc_now
 from app.table.group.model import Group, GroupType
 from app.table.offer.model import Offer
 from app.table.offer.schemas import (
@@ -125,7 +126,6 @@ async def update_offer(
     session: AsyncSession = Depends(get_db),
 ) -> OfferDetailResponse:
     """Update offer fields."""
-    from datetime import UTC, datetime
 
     stmt = select(Offer).where(Offer.id == offer_id)
     result = await session.execute(stmt)
@@ -151,7 +151,7 @@ async def update_offer(
         group = result.scalar_one_or_none()
         offer.group_id = group.id if group else None
 
-    offer.updated_at = datetime.now(UTC)
+    offer.updated_at = utc_now()
     await session.commit()
 
     return _offer_to_detail(offer)

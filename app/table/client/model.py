@@ -1,10 +1,12 @@
 """Client model -- user devices identified by internal_id (UUID from Keychain)."""
 
-from datetime import UTC, datetime
+from datetime import datetime
+
 from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import Column, DateTime, String
 from sqlmodel import Field, Relationship, SQLModel
+from app.utils.helpers import utc_now
 
 from app.schemas.common import ATTStatus
 
@@ -45,9 +47,9 @@ class Client(SQLModel, table=True):
 
     # Activity
     first_seen_at: datetime = Field(
-        default_factory=lambda: datetime.now(UTC), sa_type=DateTime
+        default_factory=utc_now, sa_type=DateTime
     )
     last_seen_at: datetime = Field(
-        default_factory=lambda: datetime.now(UTC), sa_type=DateTime
+        default_factory=utc_now, sa_type=DateTime
     )
     sessions_count: int = Field(default=1)

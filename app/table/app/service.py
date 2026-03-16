@@ -1,13 +1,14 @@
 """Service for App management."""
 
 import uuid
-from datetime import UTC, datetime
+
 
 from fastapi import HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.cache.redis import cache
+from app.utils.helpers import utc_now
 from app.table.app.enums import AppMode
 from app.table.app.model import App
 from app.table.app.schemas import (
@@ -241,7 +242,7 @@ class AppService:
             group_id, _ = await self._resolve_group(req.group_name)
             app.group_id = group_id
 
-        app.updated_at = datetime.now(UTC)
+        app.updated_at = utc_now()
         await self.session.commit()
 
         # Invalidate cache
@@ -256,7 +257,7 @@ class AppService:
         app = await self._get_app_or_404(bundle_id)
         old_mode = get_enum_value(app.mode)
         app.mode = AppMode(req.mode)
-        app.updated_at = datetime.now(UTC)
+        app.updated_at = utc_now()
         await self.session.commit()
         await cache.invalidate_app(bundle_id)
 
@@ -281,7 +282,7 @@ class AppService:
                 not_found.append(bid)
                 continue
             app.mode = AppMode(req.mode)
-            app.updated_at = datetime.now(UTC)
+            app.updated_at = utc_now()
             updated += 1
 
         await self.session.commit()
@@ -301,7 +302,7 @@ class AppService:
         """Deactivate app (soft delete)."""
         app = await self._get_app_or_404(bundle_id)
         app.is_active = False
-        app.updated_at = datetime.now(UTC)
+        app.updated_at = utc_now()
         await self.session.commit()
         await cache.invalidate_app(bundle_id)
 
