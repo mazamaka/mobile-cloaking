@@ -5,8 +5,6 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-cloaking}
-    ports:
-      - "${POSTGRES_EXTERNAL_PORT:-5440}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -28,18 +26,17 @@ services:
 
   adminer:
     image: adminer:latest
-    ports:
-      - "${ADMINER_PORT:-8180}:8080"
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - default
+      - proxy
     restart: unless-stopped
 
   admin:
     build: .
     env_file: stack.env
-    ports:
-      - "${PORT:-8100}:8000"
     depends_on:
       db:
         condition: service_healthy
