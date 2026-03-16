@@ -14,7 +14,6 @@ from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from app.admin.panel import setup_admin
 from app.api.v1.router import router as api_v1_router
-from app.cache.redis import cache
 from app.db.database import db
 from app.ratelimit import limiter
 from app.utils.logger import logger
@@ -28,10 +27,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Manage application startup and shutdown lifecycle."""
     logger.info("Starting application...")
     logger.info(f"Debug mode: {SETTINGS.debug}")
-    await cache.connect(SETTINGS.redis_url)
     yield
     logger.info("Shutting down application...")
-    await cache.close()
     await db.close()
 
 
@@ -77,16 +74,6 @@ API requires no auth. Client is identified by `internal_id` (UUID from Keychain)
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
     app.add_middleware(SlowAPIMiddleware)
-
-    # Session middleware (shares session with admin panel for dashboard API)
-    from starlette.middleware.sessions import SessionMiddleware
-
-    app.add_middleware(
-        SessionMiddleware,
-        secret_key=SETTINGS.auth_secret,
-        same_site="lax",
-        https_only=False,
-    )
 
     # Trust proxy headers (X-Forwarded-Proto, X-Forwarded-For)
     trusted = (
@@ -143,10 +130,10 @@ API requires no auth. Client is identified by `internal_id` (UUID from Keychain)
         "/health/deep",
         tags=["health"],
         summary="Deep health check",
-        description="Checks DB and Redis connectivity.",
+        description="Checks DB connectivity.",
     )
     async def health_deep() -> dict:
-        """Check DB + Redis connections and return detailed status."""
+        """Check DB connection and return detailed status."""
         from sqlalchemy import text
 
         checks: dict[str, str] = {}
@@ -158,15 +145,6 @@ API requires no auth. Client is identified by `internal_id` (UUID from Keychain)
             checks["db"] = "ok"
         except Exception as e:
             checks["db"] = f"error: {e}"
-
-        # Redis check
-        if cache.available:
-            if await cache.ping():
-                checks["redis"] = "ok"
-            else:
-                checks["redis"] = "error: ping failed"
-        else:
-            checks["redis"] = "disconnected"
 
         all_ok = all(v == "ok" for v in checks.values())
         return {"status": "ok" if all_ok else "degraded", "checks": checks}

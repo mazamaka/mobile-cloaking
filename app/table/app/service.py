@@ -7,7 +7,6 @@ from fastapi import HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.cache.redis import cache
 from app.utils.helpers import utc_now
 from app.table.app.enums import AppMode
 from app.table.app.model import App
@@ -245,9 +244,6 @@ class AppService:
         app.updated_at = utc_now()
         await self.session.commit()
 
-        # Invalidate cache
-        await cache.invalidate_app(bundle_id)
-
         return self._app_to_detail(app)
 
     # --- Mode switch ---
@@ -259,7 +255,6 @@ class AppService:
         app.mode = AppMode(req.mode)
         app.updated_at = utc_now()
         await self.session.commit()
-        await cache.invalidate_app(bundle_id)
 
         logger.info(f"Mode switch: {bundle_id} {old_mode} -> {req.mode}")
 
@@ -287,11 +282,6 @@ class AppService:
 
         await self.session.commit()
 
-        # Invalidate cache for all updated apps
-        for bid in req.bundle_ids:
-            if bid not in not_found:
-                await cache.invalidate_app(bid)
-
         logger.info(f"Bulk mode switch: {updated} apps -> {req.mode}")
 
         return AppBulkModeResponse(updated=updated, not_found=not_found)
@@ -304,7 +294,6 @@ class AppService:
         app.is_active = False
         app.updated_at = utc_now()
         await self.session.commit()
-        await cache.invalidate_app(bundle_id)
 
         return MessageResponse(message=f"App '{bundle_id}' deactivated")
 

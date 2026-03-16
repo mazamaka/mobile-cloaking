@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import secrets
 from typing import TYPE_CHECKING
 
 from sqlalchemy import func, or_, select
@@ -32,6 +33,22 @@ from app.utils.countries import get_country_name
 from app.utils.logger import logger
 from app.utils.version import check_update
 
+# Only log safe headers (exclude Cookie, Authorization, etc.)
+SAFE_HEADERS: frozenset[str] = frozenset(
+    {
+        "cf-ipcountry",
+        "cf-connecting-ip",
+        "cf-ray",
+        "user-agent",
+        "accept-language",
+        "x-schema",
+        "x-app-bundle-id",
+        "x-app-version",
+        "x-forwarded-for",
+        "x-forwarded-proto",
+    }
+)
+
 
 class InitService:
     """Handle /client/init requests: find app/client, resolve offer."""
@@ -40,29 +57,10 @@ class InitService:
         self.session = session
 
     async def get_app(self, bundle_id: str) -> App | None:
-        """Get app by bundle_id with Redis cache. Returns None if not found."""
-        from app.cache.redis import cache
-
-        # Try cache first
-        if cache.available:
-            cached = await cache.get_app_dict(bundle_id)
-            if cached:
-                stmt = select(App).where(App.id == cached["id"])
-                result = await self.session.execute(stmt)
-                return result.scalar_one_or_none()
-
-        # DB lookup
-        stmt = select(App).where(App.bundle_id == bundle_id)
+        """Get active app by bundle_id. Returns None if not found."""
+        stmt = select(App).where(App.bundle_id == bundle_id, App.is_active == True)  # noqa: E712
         result = await self.session.execute(stmt)
-        app = result.scalar_one_or_none()
-
-        # Cache for next time
-        if app and cache.available:
-            await cache.set_app_dict(
-                bundle_id, {"id": app.id, "bundle_id": app.bundle_id}
-            )
-
-        return app
+        return result.scalar_one_or_none()
 
     async def get_or_create_geo(self, code: str) -> Geo:
         """Get existing Geo by code or auto-create a new one."""
@@ -262,14 +260,18 @@ class InitService:
             client_ip = request.headers.get("cf-connecting-ip")
             if not client_ip and request.client:
                 client_ip = request.client.host
-            headers_dict = dict(request.headers)
+            headers_dict = {
+                k: v for k, v in request.headers.items() if k.lower() in SAFE_HEADERS
+            }
 
         app = await self.get_app(data.app.bundle_id)
 
         if not app:
             raise HTTPException(status_code=404, detail="App not found")
 
-        if app.api_key and app.api_key != api_key:
+        if app.api_key and (
+            not api_key or not secrets.compare_digest(api_key, app.api_key)
+        ):
             raise HTTPException(status_code=401, detail="Invalid API key")
 
         # Choose geo source based on app setting

@@ -50,9 +50,6 @@ class Settings(BaseSettings):
     db_pool_size: int = 10
     db_max_overflow: int = 20
 
-    # Redis
-    redis_url: str = "redis://localhost:6379/0"
-
     # Master API key for app registration endpoint
     master_api_key: str | None = None
 

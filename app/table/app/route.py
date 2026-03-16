@@ -103,28 +103,6 @@ async def bulk_mode(
     return await service.bulk_mode(body)
 
 
-# --- Cache flush ---
-
-
-@router.post(
-    "/cache/flush",
-    summary="Flush app cache",
-    response_model=MessageResponse,
-    dependencies=[Depends(verify_master_key)],
-)
-async def flush_cache(
-    bundle_id: str | None = None,
-) -> MessageResponse:
-    """Flush Redis cache for a specific app or all apps."""
-    from app.cache.redis import cache
-
-    if bundle_id:
-        await cache.invalidate_app(bundle_id)
-        return MessageResponse(message=f"Cache flushed for '{bundle_id}'")
-    await cache.invalidate_all_apps()
-    return MessageResponse(message="All app cache flushed")
-
-
 # --- Detail ---
 
 

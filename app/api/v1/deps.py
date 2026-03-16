@@ -1,3 +1,4 @@
+import secrets
 from collections.abc import AsyncGenerator
 from dataclasses import dataclass
 
@@ -23,7 +24,9 @@ async def verify_master_key(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Management API disabled (master key not configured)",
         )
-    if x_master_key != SETTINGS.master_api_key:
+    if not x_master_key or not secrets.compare_digest(
+        x_master_key, SETTINGS.master_api_key
+    ):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid master key",
@@ -39,7 +42,7 @@ async def verify_master_key_or_session(
     if (
         x_master_key
         and SETTINGS.master_api_key
-        and x_master_key == SETTINGS.master_api_key
+        and secrets.compare_digest(x_master_key, SETTINGS.master_api_key)
     ):
         return x_master_key
 
