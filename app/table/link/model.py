@@ -1,9 +1,9 @@
 """Link model -- binding between App, Offer, and Geo."""
 
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import Column, String
+from sqlalchemy import Column, DateTime, String
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
@@ -61,7 +61,9 @@ class Link(SQLModel, table=True):
     # Status
     is_active: bool = Field(default=True, index=True)
 
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = Field(
+        default_factory=datetime.utcnow, sa_type=DateTime
+    )
 
     def __admin_repr__(self, request: object) -> str:
         """Return 'App | Offer | Geo' for admin panel."""

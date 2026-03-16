@@ -1,6 +1,6 @@
 """Core business logic: client initialization and mode decision."""
 
-from datetime import UTC, datetime
+from datetime import datetime
 
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -94,7 +94,7 @@ class InitService:
                 client.appsflyer_id = data.attribution.appsflyer_id
             if data.push and data.push.token is not None:
                 client.push_token = data.push.token
-            client.last_seen_at = datetime.now(UTC)
+            client.last_seen_at = datetime.utcnow()
             client.sessions_count += 1
 
         await self.session.flush()

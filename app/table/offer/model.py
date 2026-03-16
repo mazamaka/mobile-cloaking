@@ -1,8 +1,9 @@
 """Offer model -- casino URLs for geo-targeted redirects."""
 
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 
+from sqlalchemy import DateTime
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
@@ -35,8 +36,12 @@ class Offer(SQLModel, table=True):
     is_active: bool = Field(default=True, index=True)
 
     # Timestamps
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = Field(
+        default_factory=datetime.utcnow, sa_type=DateTime
+    )
+    updated_at: datetime = Field(
+        default_factory=datetime.utcnow, sa_type=DateTime
+    )
 
     # Relationships
     links: list["Link"] = Relationship(

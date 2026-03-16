@@ -1,10 +1,10 @@
 """Group model -- organizational groups for apps and offers."""
 
-from datetime import UTC, datetime
+from datetime import datetime
 from enum import Enum
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Column, String
+from sqlalchemy import Column, DateTime, String
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
@@ -29,8 +29,12 @@ class Group(SQLModel, table=True):
     type: GroupType = Field(sa_column=Column(String(10), nullable=False, index=True))
     description: str | None = Field(default=None)
     is_active: bool = Field(default=True)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = Field(
+        default_factory=datetime.utcnow, sa_type=DateTime
+    )
+    updated_at: datetime = Field(
+        default_factory=datetime.utcnow, sa_type=DateTime
+    )
 
     # Relationships
     apps: list["App"] = Relationship(
