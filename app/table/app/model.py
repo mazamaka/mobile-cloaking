@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Optional
 from sqlalchemy import Column, DateTime, String
 from sqlmodel import Field, Relationship, SQLModel
 
-from app.table.app.enums import AppMode, UpdateMode
+from app.table.app.enums import AppMode, GeoSource, UpdateMode
 from app.utils.helpers import utc_now
 
 if TYPE_CHECKING:
@@ -53,7 +53,9 @@ class App(SQLModel, table=True):
     # Geo source for client country detection
     geo_source: GeoSource = Field(
         default=GeoSource.CLOUDFLARE,
-        sa_column=Column(String(15), nullable=False, default="cloudflare"),
+        sa_column=Column(
+            "geo_source", String(15), nullable=False, default="cloudflare"
+        ),
     )
 
     # Icon
