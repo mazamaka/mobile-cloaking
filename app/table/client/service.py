@@ -59,12 +59,33 @@ class InitService:
 
         return app
 
+    async def get_or_create_geo(self, code: str) -> Geo:
+        """Get existing Geo by code or auto-create a new one."""
+        code_upper = code.upper()
+        stmt = select(Geo).where(Geo.code == code_upper)
+        result = await self.session.execute(stmt)
+        geo = result.scalar_one_or_none()
+        if geo:
+            return geo
+
+        geo = Geo(
+            code=code_upper,
+            name=get_country_name(code_upper),
+            is_active=True,
+            is_default=False,
+        )
+        self.session.add(geo)
+        await self.session.flush()
+        logger.info(f"Auto-created Geo: {code_upper} ({geo.name})")
+        return geo
+
     async def get_or_create_client(
         self,
         app: App,
         data: InitRequest,
         *,
         cf_country: str | None = None,
+        geo_id: int | None = None,
     ) -> tuple[Client, bool]:
         """Get existing client or create a new one.
 
@@ -81,6 +102,7 @@ class InitService:
             client = Client(
                 internal_id=data.ids.internal_id,
                 app_id=app.id,
+                geo_id=geo_id,
                 app_version=data.app.version,
                 language=data.device.language,
                 timezone=data.device.timezone,
@@ -95,6 +117,7 @@ class InitService:
             )
             self.session.add(client)
         else:
+            client.geo_id = geo_id
             client.app_version = data.app.version
             client.language = data.device.language
             client.timezone = data.device.timezone
@@ -248,12 +271,15 @@ class InitService:
 
             raise HTTPException(status_code=401, detail="Invalid API key")
 
-        client, is_new = await self.get_or_create_client(
-            app, data, cf_country=cf_country
-        )
-
         # Use CF country for geo targeting, fallback to device region
         geo_region = cf_country or data.device.region
+
+        # Resolve Geo (auto-create if not in DB)
+        geo = await self.get_or_create_geo(geo_region)
+
+        client, is_new = await self.get_or_create_client(
+            app, data, cf_country=cf_country, geo_id=geo.id
+        )
 
         offer_link = None
         if app.mode == AppMode.CASINO:

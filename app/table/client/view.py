@@ -27,6 +27,9 @@ class ClientView(ModelView):
             "internal_id", label="Internal ID", help_text="UUID клиента от устройства"
         ),
         HasOne("app", identity="app", label="App", help_text="Приложение клиента"),
+        HasOne(
+            "geo", identity="geo", label="Country", help_text="Страна клиента (по IP)"
+        ),
         StringField(
             "app_version",
             label="App Version",
@@ -40,8 +43,13 @@ class ClientView(ModelView):
         StringField("timezone", label="Timezone", help_text="Часовой пояс устройства"),
         StringField(
             "region",
-            label="Region",
-            help_text="ISO код региона устройства (EE, US и т.д.)",
+            label="Device Region",
+            help_text="ISO код региона из настроек устройства (может не совпадать со страной)",
+        ),
+        StringField(
+            "cf_country",
+            label="CF Country",
+            help_text="Код страны из Cloudflare cf-ipcountry (raw)",
         ),
         EnumField(
             "att_status",
@@ -83,6 +91,8 @@ class ClientView(ModelView):
     ]
 
     exclude_fields_from_list = [
+        "region",
+        "cf_country",
         "idfa",
         "appsflyer_id",
         "push_token",
@@ -96,8 +106,14 @@ class ClientView(ModelView):
     ]
     exclude_fields_from_edit = ["id", "internal_id", "first_seen_at"]
 
-    searchable_fields = ["internal_id", "region", "appsflyer_id"]
-    sortable_fields = ["id", "region", "att_status", "sessions_count", "last_seen_at"]
+    searchable_fields = ["internal_id", "cf_country", "appsflyer_id"]
+    sortable_fields = [
+        "id",
+        "cf_country",
+        "att_status",
+        "sessions_count",
+        "last_seen_at",
+    ]
 
     # Read-only view (clients are created via API)
     def can_create(self, request: Request) -> bool:

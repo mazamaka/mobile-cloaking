@@ -26,6 +26,10 @@ class Client(SQLModel, table=True):
     app_id: int = Field(foreign_key="apps.id", index=True)
     app: Optional["App"] = Relationship(sa_relationship_kwargs={"lazy": "selectin"})
 
+    # Geo relation (real country by IP via Cloudflare)
+    geo_id: int | None = Field(default=None, foreign_key="geos.id", index=True)
+    geo: Optional["Geo"] = Relationship(sa_relationship_kwargs={"lazy": "selectin"})
+
     # App version
     app_version: str
 
@@ -35,7 +39,7 @@ class Client(SQLModel, table=True):
     region: str  # from iOS device settings
     cf_country: str | None = Field(
         default=None, max_length=10, index=True
-    )  # from CF header
+    )  # raw cf-ipcountry header
 
     # Privacy - stored as VARCHAR in DB
     att_status: ATTStatus = Field(sa_column=Column(String(20), nullable=False))
