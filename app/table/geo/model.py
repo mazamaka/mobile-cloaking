@@ -12,6 +12,14 @@ if TYPE_CHECKING:
     from app.table.link.model import Link
 
 
+# Codes that don't map to country flags
+SPECIAL_FLAGS: dict[str, str] = {
+    "T1": "🧅",  # Tor Network
+    "XX": "❓",  # Unknown
+    "DEFAULT": "🌐",  # Fallback
+}
+
+
 class Geo(SQLModel, table=True):
     """Geographic region (country) for offer targeting.
 
@@ -44,23 +52,17 @@ class Geo(SQLModel, table=True):
         back_populates="geo", sa_relationship_kwargs={"lazy": "selectin"}
     )
 
-    # Codes that don't map to country flags
-    _SPECIAL_FLAGS: dict[str, str] = {
-        "T1": "🧅",  # Tor Network
-        "XX": "❓",  # Unknown
-        "DEFAULT": "🌐",  # Fallback
-    }
-
     @property
     def flag(self) -> str:
         """Convert ISO alpha-2 code to flag emoji (e.g. 'HU' -> '🇭🇺')."""
         if not self.code:
             return "🌐"
-        if self.code.upper() in self._SPECIAL_FLAGS:
-            return self._SPECIAL_FLAGS[self.code.upper()]
+        upper = self.code.upper()
+        if upper in SPECIAL_FLAGS:
+            return SPECIAL_FLAGS[upper]
         if len(self.code) != 2 or not self.code.isalpha():
             return "🌐"
-        return "".join(chr(0x1F1E6 + ord(c) - ord("A")) for c in self.code.upper())
+        return "".join(chr(0x1F1E6 + ord(c) - ord("A")) for c in upper)
 
     def __admin_repr__(self, request: object) -> str:
         """Return '🇭🇺 HU (Hungary)' for admin panel."""
