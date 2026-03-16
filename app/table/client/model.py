@@ -56,3 +56,7 @@ class Client(SQLModel, table=True):
     first_seen_at: datetime = Field(default_factory=utc_now, sa_type=DateTime)
     last_seen_at: datetime = Field(default_factory=utc_now, sa_type=DateTime)
     sessions_count: int = Field(default=1)
+
+    def __admin_repr__(self, request: object) -> str:
+        """Show internal_id in admin relations instead of numeric ID."""
+        return self.internal_id

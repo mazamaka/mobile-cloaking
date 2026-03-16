@@ -44,10 +44,21 @@ class Geo(SQLModel, table=True):
         back_populates="geo", sa_relationship_kwargs={"lazy": "selectin"}
     )
 
+    # Codes that don't map to country flags
+    _SPECIAL_FLAGS: dict[str, str] = {
+        "T1": "🧅",  # Tor Network
+        "XX": "❓",  # Unknown
+        "DEFAULT": "🌐",  # Fallback
+    }
+
     @property
     def flag(self) -> str:
         """Convert ISO alpha-2 code to flag emoji (e.g. 'HU' -> '🇭🇺')."""
-        if not self.code or len(self.code) != 2:
+        if not self.code:
+            return "🌐"
+        if self.code.upper() in self._SPECIAL_FLAGS:
+            return self._SPECIAL_FLAGS[self.code.upper()]
+        if len(self.code) != 2 or not self.code.isalpha():
             return "🌐"
         return "".join(chr(0x1F1E6 + ord(c) - ord("A")) for c in self.code.upper())
 
