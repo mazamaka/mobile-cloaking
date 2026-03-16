@@ -64,12 +64,16 @@
     align-items: center;
     gap: 1rem;
     transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
   }
 
   .kpi-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(0,0,0,0.4);
     border-color: var(--primary) !important;
+    color: inherit;
   }
 
   .kpi-icon {
@@ -797,53 +801,53 @@
 
   <!-- KPI Cards -->
   <div class="kpi-grid" id="kpi-grid">
-    <div class="kpi-card">
+    <a href="/admin/app/list" class="kpi-card">
       <div class="kpi-icon apps"><i class="fas fa-mobile-alt"></i></div>
       <div class="kpi-content">
         <div class="kpi-value" id="kpi-apps">-</div>
         <div class="kpi-label">Applications</div>
         <div class="kpi-meta" id="kpi-apps-meta"></div>
       </div>
-    </div>
-    <div class="kpi-card">
+    </a>
+    <a href="/admin/offer/list" class="kpi-card">
       <div class="kpi-icon offers"><i class="fas fa-gift"></i></div>
       <div class="kpi-content">
         <div class="kpi-value" id="kpi-offers">-</div>
         <div class="kpi-label">Offers</div>
         <div class="kpi-meta" id="kpi-offers-meta"></div>
       </div>
-    </div>
-    <div class="kpi-card">
+    </a>
+    <a href="/admin/geo/list" class="kpi-card">
       <div class="kpi-icon geos"><i class="fas fa-globe"></i></div>
       <div class="kpi-content">
         <div class="kpi-value" id="kpi-geos">-</div>
         <div class="kpi-label">Geo Regions</div>
       </div>
-    </div>
-    <div class="kpi-card">
+    </a>
+    <a href="/admin/link/list" class="kpi-card">
       <div class="kpi-icon links"><i class="fas fa-project-diagram"></i></div>
       <div class="kpi-content">
         <div class="kpi-value" id="kpi-links">-</div>
         <div class="kpi-label">Active Links</div>
         <div class="kpi-meta" id="kpi-links-meta"></div>
       </div>
-    </div>
-    <div class="kpi-card">
+    </a>
+    <a href="/admin/client/list" class="kpi-card">
       <div class="kpi-icon clients"><i class="fas fa-users"></i></div>
       <div class="kpi-content">
         <div class="kpi-value" id="kpi-clients">-</div>
         <div class="kpi-label">Clients</div>
         <div class="kpi-meta" id="kpi-clients-meta"></div>
       </div>
-    </div>
-    <div class="kpi-card">
+    </a>
+    <a href="/admin/event/list" class="kpi-card">
       <div class="kpi-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);"><i class="fas fa-chart-bar"></i></div>
       <div class="kpi-content">
         <div class="kpi-value" id="kpi-events">-</div>
         <div class="kpi-label">Events Today</div>
         <div class="kpi-meta" id="kpi-events-meta"></div>
       </div>
-    </div>
+    </a>
   </div>
 
   <!-- Main Content -->
