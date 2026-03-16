@@ -74,10 +74,17 @@ class Settings(BaseSettings):
         return self.postgres_port if IS_DOCKER else self.postgres_external_port
 
     @property
+    def _safe_password(self) -> str:
+        """URL-encode password for use in connection strings."""
+        from urllib.parse import quote_plus
+
+        return quote_plus(self.postgres_password)
+
+    @property
     def database_url(self) -> str:
         """Async database URL for asyncpg driver."""
         return (
-            f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}"
+            f"postgresql+asyncpg://{self.postgres_user}:{self._safe_password}"
             f"@{self.effective_host}:{self.effective_port}/{self.postgres_db}"
         )
 
@@ -85,7 +92,7 @@ class Settings(BaseSettings):
     def database_url_sync(self) -> str:
         """Sync database URL for psycopg2 driver (Alembic)."""
         return (
-            f"postgresql://{self.postgres_user}:{self.postgres_password}"
+            f"postgresql://{self.postgres_user}:{self._safe_password}"
             f"@{self.effective_host}:{self.effective_port}/{self.postgres_db}"
         )
 
