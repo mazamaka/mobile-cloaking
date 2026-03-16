@@ -53,6 +53,9 @@ class Settings(BaseSettings):
     # Redis
     redis_url: str = "redis://localhost:6379/0"
 
+    # Master API key for app registration endpoint
+    master_api_key: str | None = None
+
     # Proxy settings
     trusted_hosts: str = "*"  # Comma-separated list or "*" for all
 
