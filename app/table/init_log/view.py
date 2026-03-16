@@ -36,7 +36,10 @@ class InitLogView(ModelView):
             "response_body", label="Response Body", help_text="Тело ответа (JSON)"
         ),
         DateTimeField(
-            "created_at", label="Created At", help_text="Время создания записи"
+            "created_at",
+            label="Created At",
+            help_text="Время создания записи",
+            output_format="dd.MM.yyyy HH:mm",
         ),
     ]
 

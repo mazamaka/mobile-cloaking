@@ -67,11 +67,13 @@ class ClientView(ModelView):
             "first_seen_at",
             label="First Seen At",
             help_text="Дата первого запроса клиента",
+            output_format="dd.MM.yyyy HH:mm",
         ),
         DateTimeField(
             "last_seen_at",
             label="Last Seen At",
             help_text="Дата последнего запроса клиента",
+            output_format="dd.MM.yyyy HH:mm",
         ),
         IntegerField(
             "sessions_count",

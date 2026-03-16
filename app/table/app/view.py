@@ -101,12 +101,16 @@ class AppView(ModelView):
             help_text="Связки приложения с офферами и гео",
         ),
         DateTimeField(
-            "created_at", label="Created At", help_text="Дата и время создания записи"
+            "created_at",
+            label="Created At",
+            help_text="Дата и время создания записи",
+            output_format="dd.MM.yyyy HH:mm",
         ),
         DateTimeField(
             "updated_at",
             label="Updated At",
             help_text="Дата и время последнего обновления",
+            output_format="dd.MM.yyyy HH:mm",
         ),
     ]
 

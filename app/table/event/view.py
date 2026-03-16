@@ -26,7 +26,10 @@ class EventView(ModelView):
             help_text="Название события (screen_view, button_click и т.д.)",
         ),
         DateTimeField(
-            "event_ts", label="Event Time", help_text="Время события на устройстве"
+            "event_ts",
+            label="Event Time",
+            help_text="Время события на устройстве",
+            output_format="dd.MM.yyyy HH:mm",
         ),
         JSONField(
             "props",
@@ -42,6 +45,7 @@ class EventView(ModelView):
             "received_at",
             label="Received At",
             help_text="Время получения события сервером",
+            output_format="dd.MM.yyyy HH:mm",
         ),
     ]
 

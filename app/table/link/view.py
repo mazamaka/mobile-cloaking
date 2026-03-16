@@ -89,7 +89,10 @@ class LinkView(ModelView):
             help_text="Активна ли связка (неактивные игнорируются)",
         ),
         DateTimeField(
-            "created_at", label="Created At", help_text="Дата и время создания записи"
+            "created_at",
+            label="Created At",
+            help_text="Дата и время создания записи",
+            output_format="dd.MM.yyyy HH:mm",
         ),
     ]
 
