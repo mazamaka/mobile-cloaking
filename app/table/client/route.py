@@ -95,4 +95,4 @@ async def client_init(
 ) -> InitResponse:
     """Инициализация клиента при запуске приложения."""
     service = InitService(session)
-    return await service.process_init(body, api_key=headers.api_key)
+    return await service.process_init(body, request=request, api_key=headers.api_key)

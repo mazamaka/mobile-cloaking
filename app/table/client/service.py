@@ -1,10 +1,17 @@
 """Core business logic: client initialization and mode decision."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import Select
 
 from app.utils.helpers import utc_now
+
+if TYPE_CHECKING:
+    from starlette.requests import Request
 from app.table.app.enums import AppMode
 from app.table.app.model import App
 from app.table.client.model import Client
@@ -204,7 +211,10 @@ class InitService:
         return None
 
     async def process_init(
-        self, data: InitRequest, api_key: str | None = None
+        self,
+        data: InitRequest,
+        request: "Request | None" = None,
+        api_key: str | None = None,
     ) -> InitResponse:
         """Process init request: resolve app, client, offer, and build response."""
         app = await self.get_app(data.app.bundle_id)
@@ -241,11 +251,29 @@ class InitService:
             app_version=data.app.version,
         )
 
+        # --- DEBUG logging ---
+        client_ip = None
+        headers_dict: dict[str, str] = {}
+        if request:
+            client_ip = request.client.host if request.client else None
+            headers_dict = dict(request.headers)
+
         logger.info(
-            f"Init: app={app.bundle_id}, client={client.internal_id}, "
-            f"mode={app.mode}, geo={data.device.region}, "
-            f"offer={offer.name if offer else None}, "
-            f"casino={'yes' if response.result else 'no'}, new={is_new}"
+            f"[DEBUG INIT] === /client/init ===\n"
+            f"  IP: {client_ip}\n"
+            f"  Headers: {headers_dict}\n"
+            f"  App: bundle_id={data.app.bundle_id}, version={data.app.version}\n"
+            f"  Device: lang={data.device.language}, tz={data.device.timezone}, "
+            f"region={data.device.region}\n"
+            f"  Privacy: att={data.privacy.att}\n"
+            f"  IDs: internal_id={data.ids.internal_id}, idfa={data.ids.idfa}\n"
+            f"  Attribution: {data.attribution}\n"
+            f"  Push: {data.push}\n"
+            f"  --- Result ---\n"
+            f"  App mode={app.mode}, client={client.internal_id}, new={is_new}\n"
+            f"  Offer={offer.name if offer else None}, "
+            f"casino={'yes' if response.result else 'no'}\n"
+            f"  Response result={response.result}"
         )
 
         return response
