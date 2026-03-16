@@ -43,6 +43,7 @@ def create_admin() -> Admin:
         engine,
         title="Mobile Cloaking",
         base_url="/admin",
+        favicon_url="/favicon.ico",
         templates_dir=str(TEMPLATES_DIR),
         index_view=CustomView(
             label="Dashboard",
