@@ -6,10 +6,14 @@ from app.api.v1.dashboard import router as dashboard_router
 from app.table.app.route import router as app_router
 from app.table.client.route import router as client_router
 from app.table.event.route import router as event_router
+from app.table.geo.route import router as geo_router
+from app.table.offer.route import router as offer_router
 
 router = APIRouter(prefix="/api/v1")
 
 router.include_router(app_router)
+router.include_router(offer_router)
+router.include_router(geo_router)
 router.include_router(client_router)
 router.include_router(event_router)
 router.include_router(dashboard_router)

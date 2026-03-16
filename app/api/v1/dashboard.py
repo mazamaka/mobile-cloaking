@@ -1,14 +1,18 @@
-"""Dashboard API routes."""
+"""Dashboard API routes (protected by X-Master-Key)."""
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.admin import stats
-from app.db.database import get_db
+from app.api.v1.deps import get_db, verify_master_key
 from app.table.group.model import GroupType
 
-router = APIRouter(prefix="/dashboard", tags=["dashboard"])
+router = APIRouter(
+    prefix="/dashboard",
+    tags=["dashboard"],
+    dependencies=[Depends(verify_master_key)],
+)
 
 
 class CreateLinkRequest(BaseModel):

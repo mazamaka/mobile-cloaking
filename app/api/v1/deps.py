@@ -1,16 +1,34 @@
 from collections.abc import AsyncGenerator
 from dataclasses import dataclass
 
-from fastapi import Header, Request
+from fastapi import Header, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import db
+from config import SETTINGS
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """Dependency for getting database session."""
     async for session in db.get_session():
         yield session
+
+
+async def verify_master_key(
+    x_master_key: str | None = Header(None, alias="X-Master-Key"),
+) -> str:
+    """Verify X-Master-Key header against configured master_api_key."""
+    if not SETTINGS.master_api_key:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Management API disabled (master key not configured)",
+        )
+    if x_master_key != SETTINGS.master_api_key:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid master key",
+        )
+    return x_master_key
 
 
 @dataclass

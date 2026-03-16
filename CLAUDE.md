@@ -82,11 +82,53 @@ app/
 
 ## API Endpoints
 
+### Client (без auth)
 | Метод | Endpoint | Назначение |
 |-------|----------|------------|
 | POST | `/api/v1/client/init` | Инициализация клиента (result=null → native, result=url → casino) |
 | POST | `/api/v1/client/event` | Логирование событий |
-| GET | `/health`, `/ready` | Health checks |
+
+### App Management (X-Master-Key)
+| Метод | Endpoint | Назначение |
+|-------|----------|------------|
+| POST | `/api/v1/app/register` | Регистрация нового приложения |
+| GET | `/api/v1/app/list` | Список приложений (фильтры: mode, is_active, group_id) |
+| GET | `/api/v1/app/{bundle_id}` | Детали приложения |
+| PUT | `/api/v1/app/{bundle_id}` | Обновление приложения |
+| PUT | `/api/v1/app/{bundle_id}/mode` | Быстрое переключение mode |
+| DELETE | `/api/v1/app/{bundle_id}` | Soft-delete (is_active=false) |
+| POST | `/api/v1/app/{bundle_id}/links` | Добавить link (offer+geo) |
+| GET | `/api/v1/app/{bundle_id}/test-init?geo=XX` | Dry-run: что вернёт init |
+| POST | `/api/v1/app/bulk-mode` | Массовое переключение mode |
+| POST | `/api/v1/app/cache/flush` | Сброс Redis кэша |
+
+### Offer Management (X-Master-Key)
+| Метод | Endpoint | Назначение |
+|-------|----------|------------|
+| GET | `/api/v1/offer/list` | Список офферов |
+| POST | `/api/v1/offer` | Создание оффера |
+| PUT | `/api/v1/offer/{offer_id}` | Обновление оффера |
+
+### Geo Management (X-Master-Key)
+| Метод | Endpoint | Назначение |
+|-------|----------|------------|
+| GET | `/api/v1/geo/list` | Список гео |
+| POST | `/api/v1/geo` | Создание гео |
+
+### Dashboard (X-Master-Key)
+| Метод | Endpoint | Назначение |
+|-------|----------|------------|
+| GET | `/api/v1/dashboard/stats` | Общая статистика |
+| GET | `/api/v1/dashboard/matrix` | Матрица links |
+| GET | `/api/v1/dashboard/events-stats` | Статистика событий |
+| GET | `/api/v1/dashboard/push-tokens/export` | Экспорт push-токенов CSV |
+
+### Health
+| Метод | Endpoint | Назначение |
+|-------|----------|------------|
+| GET | `/health` | Liveness probe |
+| GET | `/ready` | Readiness probe |
+| GET | `/health/deep` | Deep check (DB + Redis) |
 
 ## Важные замечания
 

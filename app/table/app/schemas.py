@@ -1,4 +1,4 @@
-"""Schemas for App registration endpoint."""
+"""Schemas for App API endpoints."""
 
 import re
 
@@ -6,6 +6,9 @@ from pydantic import BaseModel, field_validator
 
 
 BUNDLE_ID_PATTERN = re.compile(r"^[a-zA-Z0-9.\-]+$")
+
+
+# --- Registration ---
 
 
 class OfferGeoBinding(BaseModel):
@@ -56,3 +59,164 @@ class AppRegisterResponse(BaseModel):
     mode: str
     links_created: int
     warnings: list[str]
+
+
+# --- Detail / List ---
+
+
+class AppDetailResponse(BaseModel):
+    """Full app details."""
+
+    id: int
+    bundle_id: str
+    apple_id: str | None
+    name: str | None
+    api_key: str | None
+    group_id: int | None
+    mode: str
+    rate_delay_sec: int
+    push_delay_sec: int
+    min_version: str | None
+    latest_version: str | None
+    update_mode: str | None
+    appstore_url: str | None
+    icon_name: str | None
+    is_active: bool
+    links_count: int
+
+
+class AppListResponse(BaseModel):
+    """Paginated list of apps."""
+
+    items: list[AppDetailResponse]
+    total: int
+
+
+# --- Update ---
+
+
+class AppUpdateRequest(BaseModel):
+    """Request body for PUT /app/{bundle_id}."""
+
+    name: str | None = None
+    apple_id: str | None = None
+    mode: str | None = None
+    api_key: str | None = None
+    group_name: str | None = None
+    rate_delay_sec: int | None = None
+    push_delay_sec: int | None = None
+    min_version: str | None = None
+    latest_version: str | None = None
+    update_mode: str | None = None
+    appstore_url: str | None = None
+    icon_name: str | None = None
+    is_active: bool | None = None
+
+    @field_validator("mode")
+    @classmethod
+    def validate_mode(cls, v: str | None) -> str | None:
+        if v is not None and v not in ("native", "casino"):
+            msg = "mode must be 'native' or 'casino'"
+            raise ValueError(msg)
+        return v
+
+    @field_validator("update_mode")
+    @classmethod
+    def validate_update_mode(cls, v: str | None) -> str | None:
+        if v is not None and v not in ("soft", "hard"):
+            msg = "update_mode must be 'soft' or 'hard'"
+            raise ValueError(msg)
+        return v
+
+
+# --- Mode switch ---
+
+
+class AppModeRequest(BaseModel):
+    """Request body for PUT /app/{bundle_id}/mode."""
+
+    mode: str
+
+    @field_validator("mode")
+    @classmethod
+    def validate_mode(cls, v: str) -> str:
+        if v not in ("native", "casino"):
+            msg = "mode must be 'native' or 'casino'"
+            raise ValueError(msg)
+        return v
+
+
+class AppModeResponse(BaseModel):
+    """Response for mode switch."""
+
+    bundle_id: str
+    old_mode: str
+    new_mode: str
+
+
+# --- Bulk mode ---
+
+
+class AppBulkModeRequest(BaseModel):
+    """Request body for POST /app/bulk-mode."""
+
+    bundle_ids: list[str]
+    mode: str
+
+    @field_validator("mode")
+    @classmethod
+    def validate_mode(cls, v: str) -> str:
+        if v not in ("native", "casino"):
+            msg = "mode must be 'native' or 'casino'"
+            raise ValueError(msg)
+        return v
+
+
+class AppBulkModeResponse(BaseModel):
+    """Response for bulk mode switch."""
+
+    updated: int
+    not_found: list[str]
+
+
+# --- Add link ---
+
+
+class AppAddLinkRequest(BaseModel):
+    """Request body for POST /app/{bundle_id}/links."""
+
+    offer_name: str
+    geo_code: str
+    priority: int | None = None
+    weight: int | None = None
+
+
+class AppAddLinkResponse(BaseModel):
+    """Response for adding a link."""
+
+    link_id: int
+    app_id: int
+    offer_id: int
+    geo_id: int
+
+
+# --- Test init ---
+
+
+class TestInitResponse(BaseModel):
+    """Response for test-init dry run."""
+
+    mode: str
+    would_return: str | None
+    offer_name: str | None = None
+    geo_code: str | None = None
+    geo_matched: str | None = None
+
+
+# --- Simple message ---
+
+
+class MessageResponse(BaseModel):
+    """Simple message response."""
+
+    message: str

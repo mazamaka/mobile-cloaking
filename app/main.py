@@ -95,6 +95,7 @@ API requires no auth. Client is identified by `internal_id` (UUID from Keychain)
             "X-App-Bundle-Id",
             "X-App-Version",
             "X-API-Key",
+            "X-Master-Key",
             "Content-Type",
         ],
     )
@@ -127,6 +128,39 @@ API requires no auth. Client is identified by `internal_id` (UUID from Keychain)
     async def ready() -> dict[str, str]:
         """Return 'ready' status if service can handle requests."""
         return {"status": "ready"}
+
+    @app.get(
+        "/health/deep",
+        tags=["health"],
+        summary="Deep health check",
+        description="Checks DB and Redis connectivity.",
+    )
+    async def health_deep() -> dict:
+        """Check DB + Redis connections and return detailed status."""
+        from sqlalchemy import text
+
+        checks: dict[str, str] = {}
+
+        # DB check
+        try:
+            async for session in db.get_session():
+                await session.execute(text("SELECT 1"))
+            checks["db"] = "ok"
+        except Exception as e:
+            checks["db"] = f"error: {e}"
+
+        # Redis check
+        try:
+            if cache.available:
+                await cache._redis.ping()  # type: ignore[union-attr]
+                checks["redis"] = "ok"
+            else:
+                checks["redis"] = "disconnected"
+        except Exception as e:
+            checks["redis"] = f"error: {e}"
+
+        all_ok = all(v == "ok" for v in checks.values())
+        return {"status": "ok" if all_ok else "degraded", "checks": checks}
 
     app.include_router(api_v1_router)
     setup_admin(app)
