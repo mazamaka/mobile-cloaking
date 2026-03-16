@@ -1115,9 +1115,9 @@ function codeToFlag(code) {
   );
 }
 
-// Navigate to link edit page in admin
-function editLink(id) {
-  window.location.href = '/admin/link/edit/' + id;
+// Navigate to link detail page in admin
+function viewLink(id) {
+  window.location.href = '/admin/link/detail/' + id;
 }
 
 // Collapsible toggle
@@ -1449,7 +1449,7 @@ function renderMatrix() {
   // NOTE: All data comes from our own API (trusted server-side), not user input.
   // Using innerHTML here is safe as geo_code/app_name/offer_name are admin-managed values.
   tbody.innerHTML = filtered.map(row => `
-    <tr data-id="${row.id}" onclick="editLink(${row.id})" style="cursor:pointer">
+    <tr data-id="${row.id}" onclick="viewLink(${row.id})" style="cursor:pointer">
       <td>
         <div class="app-cell">
           <span>${row.app_name}</span>
