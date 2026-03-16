@@ -31,7 +31,7 @@ from app.table.link.model import Link
 from app.table.offer.model import Offer
 from app.utils.countries import get_country_name
 from app.utils.logger import logger
-from app.utils.version import check_update
+from app.utils.version import check_update, parse_version
 
 # Only log safe headers (exclude Cookie, Authorization, etc.)
 SAFE_HEADERS: frozenset[str] = frozenset(
@@ -143,10 +143,13 @@ class InitService:
         stmt: Select,  # type: ignore[type-arg]
         *,
         language: str | None = None,
-        app_version: str | None = None,
         att_status: str | None = None,
     ) -> Select:  # type: ignore[type-arg]
-        """Apply nullable link filters: NULL in DB = matches any value."""
+        """Apply nullable link filters in SQL: NULL in DB = matches any value.
+
+        Note: version filtering is done in Python (see _version_matches)
+        because SQL string comparison gives wrong results for semver.
+        """
         if language:
             base_lang = language.split("-")[0] if "-" in language else language
             stmt = stmt.where(or_(Link.language.is_(None), Link.language == base_lang))
@@ -160,15 +163,19 @@ class InitService:
         else:
             stmt = stmt.where(Link.att_status.is_(None))
 
-        if app_version:
-            stmt = stmt.where(
-                or_(Link.min_version.is_(None), Link.min_version <= app_version)
-            )
-            stmt = stmt.where(
-                or_(Link.max_version.is_(None), Link.max_version >= app_version)
-            )
-
         return stmt
+
+    @staticmethod
+    def _version_matches(link: Link, app_version: str | None) -> bool:
+        """Check if app_version is within link's min/max version range (semver)."""
+        if not app_version:
+            return True
+        parsed = parse_version(app_version)
+        if link.min_version and parsed < parse_version(link.min_version):
+            return False
+        if link.max_version and parsed > parse_version(link.max_version):
+            return False
+        return True
 
     async def get_offer_for_geo(
         self,
@@ -183,7 +190,7 @@ class InitService:
 
         Filters on Link (NULL = matches any):
         - language: base language code (en, ru)
-        - app_version: must be between min_version..max_version
+        - app_version: must be between min_version..max_version (semver)
         - att_status: ATT status string
 
         Priority order:
@@ -192,9 +199,7 @@ class InitService:
         3. None if no offers found
         """
         effective_priority = func.coalesce(Link.priority, Offer.priority)
-        filter_kwargs = dict(
-            language=language, app_version=app_version, att_status=att_status
-        )
+        filter_kwargs = dict(language=language, att_status=att_status)
 
         # Try exact geo match
         stmt = (
@@ -209,14 +214,12 @@ class InitService:
                 Geo.code == region,
             )
             .order_by(effective_priority.desc())
-            .limit(1)
         )
         stmt = self._apply_link_filters(stmt, **filter_kwargs)
         result = await self.session.execute(stmt)
-        row = result.first()
-
-        if row:
-            return row[0], row[1]
+        for row in result.all():
+            if self._version_matches(row[1], app_version):
+                return row[0], row[1]
 
         # Fallback to default geo
         stmt = (
@@ -231,14 +234,12 @@ class InitService:
                 Geo.is_default == True,  # noqa: E712
             )
             .order_by(effective_priority.desc())
-            .limit(1)
         )
         stmt = self._apply_link_filters(stmt, **filter_kwargs)
         result = await self.session.execute(stmt)
-        row = result.first()
-
-        if row:
-            return row[0], row[1]
+        for row in result.all():
+            if self._version_matches(row[1], app_version):
+                return row[0], row[1]
 
         return None
 

@@ -4,7 +4,7 @@ import uuid
 
 
 from fastapi import HTTPException
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.utils.helpers import utc_now
@@ -350,65 +350,33 @@ class AppService:
     # --- Test init (dry run) ---
 
     async def test_init(self, bundle_id: str, geo: str) -> TestInitResponse:
-        """Dry-run init: show what would be returned for a given geo."""
+        """Dry-run init: show what would be returned for a given geo.
+
+        Reuses InitService.get_offer_for_geo() to ensure same logic as real /client/init.
+        """
+        from app.table.client.service import InitService
+
         app = await self._get_app_or_404(bundle_id)
         mode_str = get_enum_value(app.mode)
 
         if mode_str == "native":
             return TestInitResponse(mode=mode_str, would_return=None)
 
-        # Try exact geo match
-        stmt = (
-            select(Offer, Geo)
-            .join(Link, Offer.id == Link.offer_id)
-            .join(Geo, Link.geo_id == Geo.id)
-            .where(
-                Link.app_id == app.id,
-                Link.is_active == True,  # noqa: E712
-                Offer.is_active == True,  # noqa: E712
-                Geo.is_active == True,  # noqa: E712
-                Geo.code == geo,
-            )
-            .order_by(func.coalesce(Link.priority, Offer.priority).desc())
-            .limit(1)
+        init_svc = InitService(self.session)
+        offer_link = await init_svc.get_offer_for_geo(app.id, geo)  # type: ignore[arg-type]
+
+        if not offer_link:
+            return TestInitResponse(mode=mode_str, would_return=None)
+
+        offer, link = offer_link
+        # Determine if exact or default geo matched
+        geo_matched = "exact" if link.geo and link.geo.code == geo else "default"
+        geo_code = link.geo.code if link.geo else geo
+
+        return TestInitResponse(
+            mode=mode_str,
+            would_return=offer.url,
+            offer_name=offer.name,
+            geo_code=geo_code,
+            geo_matched=geo_matched,
         )
-        result = await self.session.execute(stmt)
-        row = result.first()
-
-        if row:
-            return TestInitResponse(
-                mode=mode_str,
-                would_return=row[0].url,
-                offer_name=row[0].name,
-                geo_code=geo,
-                geo_matched="exact",
-            )
-
-        # Try default geo
-        stmt = (
-            select(Offer, Geo)
-            .join(Link, Offer.id == Link.offer_id)
-            .join(Geo, Link.geo_id == Geo.id)
-            .where(
-                Link.app_id == app.id,
-                Link.is_active == True,  # noqa: E712
-                Offer.is_active == True,  # noqa: E712
-                Geo.is_active == True,  # noqa: E712
-                Geo.is_default == True,  # noqa: E712
-            )
-            .order_by(func.coalesce(Link.priority, Offer.priority).desc())
-            .limit(1)
-        )
-        result = await self.session.execute(stmt)
-        row = result.first()
-
-        if row:
-            return TestInitResponse(
-                mode=mode_str,
-                would_return=row[0].url,
-                offer_name=row[0].name,
-                geo_code=row[1].code,
-                geo_matched="default",
-            )
-
-        return TestInitResponse(mode=mode_str, would_return=None)
